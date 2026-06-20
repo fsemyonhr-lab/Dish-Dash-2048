@@ -9,7 +9,7 @@
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{height:100%;overscroll-behavior:none}
   body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg,#15161a);color:#fff;
-    display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100dvh;padding:16px;
+    display:flex;flex-direction:column;align-items:center;justify-content:flex-start;min-height:100dvh;padding:max(20px,5vh) 16px 16px;
     transition:background .6s ease;user-select:none;touch-action:none}
   .top{width:100%;max-width:480px;display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:16px}
   .top-left,.top-center,.top-right{display:flex;align-items:center;gap:7px}
@@ -62,6 +62,15 @@
   .book-card.locked .bc-nm,.book-card.locked .bc-fact{filter:blur(0)}
   .icon-btn,.lang-btn{background:rgba(255,255,255,.08);color:#fff;border:none;padding:9px 11px;border-radius:11px;font-size:13px;font-weight:700;cursor:pointer;transition:background .15s}
   .icon-btn{font-size:15px;padding:9px 11px}
+  .cuisine-btn{display:inline-flex;align-items:center;gap:5px;padding:9px 11px}
+  .cuisine-btn .cuisine-btn-lbl{font-size:12px;font-weight:800;letter-spacing:.2px}
+  .cuisine-bar{width:100%;max-width:480px;display:flex;align-items:center;gap:10px;margin-bottom:14px;
+    background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);color:#fff;cursor:pointer;
+    padding:12px 16px;border-radius:13px;font-size:15px;font-weight:800;transition:background .15s}
+  .cuisine-bar:active{background:rgba(255,255,255,.12)}
+  .cuisine-bar #cuisineBtnFlag{font-size:20px}
+  .cuisine-bar .cuisine-btn-lbl{flex:1;text-align:left}
+  .cuisine-bar .cuisine-bar-arrow{font-size:22px;opacity:.5;font-weight:400}
   .controls{display:flex;gap:6px;align-items:center}
   .icon-btn:active,.lang-btn:active,.menu-btn:active{background:rgba(255,255,255,.16)}
   .icon-btn:disabled{opacity:.3;cursor:not-allowed}
@@ -138,9 +147,9 @@
   @keyframes starPop{0%{transform:scale(0) rotate(-30deg)}100%{transform:scale(1) rotate(0)}}
   .dr-stars{position:absolute;top:8px;right:10px;font-size:11px;letter-spacing:1px}
   /* плавающий прогресс-бар по центру внизу, ~1/4 ширины */
-  .float-prog{position:fixed;left:50%;transform:translateX(-50%);bottom:16px;z-index:65;width:26%;min-width:120px;max-width:160px}
-  .fp-track{height:7px;background:rgba(255,255,255,.1);border-radius:4px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.3)}
-  .fp-fill{height:100%;width:0;background:linear-gradient(90deg,var(--accent,#e0a060),#f0c060);border-radius:4px;transition:width .35s cubic-bezier(.3,.8,.4,1)}
+  .prog-line{width:100%;max-width:480px;margin-top:12px}
+  .fp-track{height:4px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden}
+  .fp-fill{height:100%;width:0;background:linear-gradient(90deg,var(--accent,#e0a060),#f0c060);border-radius:3px;transition:width .35s cubic-bezier(.3,.8,.4,1)}
   .fp-labels{display:flex;align-items:center;justify-content:center;gap:6px;font-size:10px;opacity:.6;font-weight:700;margin-top:3px}
   .fp-labels .fp-cur{color:var(--accent,#e0a060);opacity:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:70px}
   .fp-labels .fp-cur::after{content:'→';margin-left:6px;opacity:.5;color:#fff}
@@ -161,7 +170,8 @@
   .undo-wrap{position:relative}
   .icon-btn.primary{background:var(--accentSh,#e0a06033);box-shadow:inset 0 0 0 1px var(--accent,#e0a060)}
   /* вертикальная кнопка-ручка кухонь */
-  #cuisineTab{position:fixed;right:0;top:38%;z-index:80;border:none;cursor:pointer;
+  #cuisineTab{display:none}
+  #cuisineTab_unused{position:fixed;right:0;top:38%;z-index:80;border:none;cursor:pointer;
     background:linear-gradient(145deg,var(--accent,#e0a060),#f0c060);color:#15161a;
     padding:14px 7px 14px 9px;border-radius:14px 0 0 14px;
     display:flex;flex-direction:column;align-items:center;gap:7px;
@@ -371,6 +381,7 @@
   <div class="stat"><div class="lbl" id="lblScore">Счёт</div><div class="val" id="score">0</div></div>
   <div class="stat"><div class="lbl" id="lblBest">Рекорд</div><div class="val" id="best">0</div></div>
 </div>
+<button class="cuisine-bar" id="cuisineBtn" title="Выбрать кухню"><span id="cuisineBtnFlag">🇷🇺</span><span class="cuisine-btn-lbl" id="cuisineBtnLbl">Выбрать кухню</span><span class="cuisine-bar-arrow">›</span></button>
 <div class="board-wrap" id="boardWrap">
   <div class="board" id="board"></div>
   <div class="tiles" id="tiles"></div>
@@ -388,10 +399,10 @@
   </div>
   <div class="boost-hint" id="boostHint"></div>
 </div>
-<div class="hint" id="hint"></div>
-<div class="float-prog" id="floatProg">
+<div class="prog-line" id="floatProg">
   <div class="fp-track"><div class="fp-fill" id="progfill"></div></div>
 </div>
+<div class="hint" id="hint"></div>
 <div id="achToast"><span class="at-em" id="atEm"></span><div class="at-txt"><div class="at-label" id="atLabel">Достижение!</div><div class="at-name" id="atName"></div></div></div>
 <button id="cuisineTab" title="Кухни">
   <span class="tab-flag" id="tabFlag">🇷🇺</span>
@@ -690,9 +701,23 @@ function sndLose(){[196,165,131].forEach((f,i)=>tone(f,.15,.4,'sine',ac().curren
 /* ---------- ВИБРО ---------- */
 function haptic(kind){
  if(!vibroOn)return;
- const tg=window.Telegram&&window.Telegram.WebApp&&window.Telegram.WebApp.HapticFeedback;
- if(tg){try{if(kind==='light')tg.impactOccurred('light');else if(kind==='medium')tg.impactOccurred('medium');else if(kind==='heavy')tg.impactOccurred('heavy');else if(kind==='success')tg.notificationOccurred('success');else if(kind==='error')tg.notificationOccurred('error');return;}catch(e){}}
- if(navigator.vibrate){const m={light:8,medium:18,heavy:35,success:[20,40,30],error:[40,30,40]};navigator.vibrate(m[kind]||10);}
+ let done=false;
+ try{
+  const tg=window.Telegram&&window.Telegram.WebApp&&window.Telegram.WebApp.HapticFeedback;
+  if(tg){
+   if(kind==='light')tg.impactOccurred('light');
+   else if(kind==='medium')tg.impactOccurred('medium');
+   else if(kind==='heavy')tg.impactOccurred('heavy');
+   else if(kind==='success')tg.notificationOccurred('success');
+   else if(kind==='error')tg.notificationOccurred('error');
+   else tg.impactOccurred('light');
+   done=true;
+  }
+ }catch(e){done=false;}
+ // web-вибрация как запасной вариант (работает на части Android даже в Telegram)
+ try{
+  if(navigator.vibrate){const m={light:8,medium:18,heavy:35,success:[18,40,28],error:[40,30,40]};navigator.vibrate(m[kind]||10);}
+ }catch(e){}
 }
 
 function maxTileVal(){let m=0;for(let y=0;y<SIZE;y++)for(let x=0;x<SIZE;x++)if(cells[y][x]&&cells[y][x].val>m)m=cells[y][x].val;return m;}
@@ -712,6 +737,8 @@ function applyLang(){const t=T[lang];document.getElementById('lblScore').textCon
 function applyTheme(){const c=CUISINES[curCuisine],fi=finalIdx(curCuisine),s=document.body.style;
  s.setProperty('--bg',c.bg);s.setProperty('--boardbg',c.boardbg);s.setProperty('--accent',c.accent);s.setProperty('--accentGlow',c.accent+'22');
  const tf=document.getElementById('tabFlag');if(tf)tf.textContent=c.flag;const tl=document.getElementById('tabLabel');if(tl)tl.textContent=lang==='ru'?'КУХНИ':'CUISINES';
+ const cbf=document.getElementById('cuisineBtnFlag');if(cbf)cbf.textContent=c.flag;
+ const cbl=document.getElementById('cuisineBtnLbl');if(cbl)cbl.textContent=lang==='ru'?'Выбрать кухню':'Choose cuisine';
  const tab=document.getElementById('cuisineTab');if(tab){tab.style.setProperty('--accent',c.accent);}}
 
 function emptyList(){const r=[];for(let y=0;y<SIZE;y++)for(let x=0;x<SIZE;x++)if(!cells[y][x])r.push({x,y});return r;}
@@ -880,7 +907,7 @@ function buildDrawer(){const list=document.getElementById('drawerList');if(!list
  const soon=document.createElement('div');soon.className='dr-card locked dr-soon';
  soon.innerHTML=`<span class="dr-flag">🚧</span><div class="dr-info"><div class="dr-name">${lang==='ru'?'Новая кухня':'New cuisine'}</div><div class="dr-sub">${lang==='ru'?'Уже готовится…':'Coming soon…'}</div></div><span class="dr-goal">❓</span>`;
  list.appendChild(soon);}
-function openDrawer(){buildDrawer();document.getElementById('cuisineDrawer').classList.add('show');document.getElementById('drawerBackdrop').classList.add('show');document.getElementById('cuisineTab').classList.add('hidden');haptic('light');}
+function openDrawer(){buildDrawer();document.getElementById('cuisineDrawer').classList.add('show');document.getElementById('drawerBackdrop').classList.add('show');const ct=document.getElementById('cuisineTab');if(ct)ct.classList.add('hidden');haptic('light');}
 function closeDrawer(){document.getElementById('cuisineDrawer').classList.remove('show');document.getElementById('drawerBackdrop').classList.remove('show');document.getElementById('cuisineTab').classList.remove('hidden');}
 function showWin(){const ov=document.getElementById('overlay');ov.classList.add('show');const t=T[lang],c=CUISINES[curCuisine],fi=finalIdx(curCuisine);
  const next=curCuisine<CUISINES.length-1?CUISINES[curCuisine+1]:null;
@@ -1116,6 +1143,7 @@ let sx,sy;const wrap=document.querySelector('.board-wrap');
 wrap.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY;},{passive:true});
 wrap.addEventListener('touchend',e=>{if(sx==null)return;const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;if(Math.max(Math.abs(dx),Math.abs(dy))<24)return;if(Math.abs(dx)>Math.abs(dy))move(dx>0?'right':'left');else move(dy>0?'down':'up');sx=sy=null;},{passive:true});
 document.getElementById('cuisineTab').onclick=(e)=>{e.stopPropagation();document.getElementById('setList').classList.remove('open');openDrawer();};
+document.getElementById('cuisineBtn').onclick=(e)=>{e.stopPropagation();document.getElementById('setList').classList.remove('open');openDrawer();};
 document.getElementById('drawerClose').onclick=closeDrawer;
 document.getElementById('drawerBackdrop').onclick=closeDrawer;
 document.getElementById('setBtn').onclick=(e)=>{e.stopPropagation();closeDrawer();document.getElementById('setList').classList.toggle('open');};
