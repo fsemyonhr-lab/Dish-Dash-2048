@@ -63,7 +63,15 @@
   .icon-btn,.lang-btn{background:rgba(255,255,255,.08);color:#fff;border:none;padding:9px 11px;border-radius:11px;font-size:13px;font-weight:700;cursor:pointer;transition:background .15s}
   .icon-btn{font-size:15px;padding:9px 11px}
   .cuisine-btn{display:inline-flex;align-items:center;gap:5px;padding:9px 11px}
+  .chef-btn-labeled{display:inline-flex;align-items:center;gap:5px;padding:9px 11px;position:relative}
+  .chef-btn-labeled .chef-btn-em{font-size:15px}
+  .chef-btn-labeled .chef-btn-lbl{font-size:12px;font-weight:800;white-space:nowrap}
   .cuisine-btn .cuisine-btn-lbl{font-size:12px;font-weight:800;letter-spacing:.2px}
+  .nav-row{width:100%;max-width:480px;display:flex;gap:10px;margin-bottom:14px}
+  .nav-row .cuisine-bar{margin-bottom:0;flex:1;min-width:0}
+  .nav-row .cuisine-btn-lbl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .chef-bar{position:relative}
+  .chef-bar .chef-btn-em{font-size:20px}
   .cuisine-bar{width:100%;max-width:480px;display:flex;align-items:center;gap:10px;margin-bottom:14px;
     background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);color:#fff;cursor:pointer;
     padding:12px 16px;border-radius:13px;font-size:15px;font-weight:800;transition:background .15s}
@@ -127,6 +135,28 @@
   .btn.ghost{background:rgba(255,255,255,.1);color:#fff}
   .hint{position:fixed;left:50%;transform:translateX(-50%);bottom:48px;z-index:66;font-size:13px;font-weight:600;text-align:center;background:rgba(0,0,0,.8);color:#fff;padding:8px 16px;border-radius:10px;opacity:0;pointer-events:none;transition:opacity .2s;white-space:nowrap}
   .hint.show{opacity:1}
+  /* ===== тема бесконечного режима ===== */
+  body.endless-theme{background:
+    radial-gradient(circle at 20% 15%,rgba(138,124,240,.18),transparent 45%),
+    radial-gradient(circle at 85% 80%,rgba(232,120,168,.14),transparent 45%),
+    radial-gradient(circle at 60% 40%,rgba(80,180,200,.10),transparent 50%),
+    linear-gradient(160deg,#16131f,#0f0d16)}
+  body.endless-theme .board-wrap{
+    box-shadow:0 0 0 1px rgba(138,124,240,.25),0 0 40px rgba(138,124,240,.12);
+    border-radius:24px}
+  body.endless-theme .stat{box-shadow:inset 0 0 0 1px rgba(138,124,240,.15)}
+  body.endless-theme .nav-row .cuisine-bar:first-child{
+    background:linear-gradient(135deg,rgba(138,124,240,.22),rgba(232,120,168,.16));
+    border-color:rgba(138,124,240,.4)}
+  /* лёгкое мерцание звёзд на фоне поля */
+  body.endless-theme .board::before{content:'';position:absolute;inset:0;border-radius:18px;pointer-events:none;
+    background-image:radial-gradient(1.5px 1.5px at 20% 30%,rgba(255,255,255,.5),transparent),
+      radial-gradient(1.5px 1.5px at 70% 20%,rgba(255,255,255,.4),transparent),
+      radial-gradient(1.5px 1.5px at 40% 70%,rgba(255,255,255,.45),transparent),
+      radial-gradient(1.5px 1.5px at 85% 60%,rgba(255,255,255,.35),transparent),
+      radial-gradient(1.5px 1.5px at 55% 90%,rgba(255,255,255,.4),transparent);
+    animation:twinkle 3s ease-in-out infinite}
+  @keyframes twinkle{0%,100%{opacity:.3}50%{opacity:.7}}
   .float-score{position:absolute;z-index:20;transform:translate(-50%,-50%);font-size:18px;font-weight:900;color:var(--accent,#e0a060);text-shadow:0 2px 6px rgba(0,0,0,.6);pointer-events:none;animation:floatUp .9s ease-out forwards}
   @keyframes floatUp{0%{opacity:0;transform:translate(-50%,-50%) scale(.6)}20%{opacity:1;transform:translate(-50%,-90%) scale(1.1)}100%{opacity:0;transform:translate(-50%,-180%) scale(1)}}
   #comboBadge{position:fixed;left:50%;top:30%;transform:translateX(-50%) scale(.5);z-index:55;font-size:26px;font-weight:900;color:#fff;text-shadow:0 0 14px var(--accent,#e0a060),0 3px 8px rgba(0,0,0,.5);opacity:0;pointer-events:none;letter-spacing:.5px}
@@ -359,13 +389,12 @@
 <div id="transFade"></div>
 <div class="top">
   <div class="top-left">
-    <div class="undo-wrap"><button class="icon-btn" id="undoBtn" title="Отменить ход">↶</button><span class="cnt-badge" id="undoBadge">1</span></div>
-    <div class="undo-wrap"><button class="icon-btn" id="boostBtn" title="Прокачать блюдо">⬆️</button><span class="cnt-badge" id="boostBadge">1</span></div>
-    <div class="undo-wrap"><button class="icon-btn" id="clearBtn" title="Убрать со стола">🧹</button><span class="cnt-badge" id="clearBadge">1</span></div>
+    <div class="undo-wrap"><button class="icon-btn" id="undoBtn" title="Отменить ход">↩️</button><span class="cnt-badge" id="undoBadge">1</span></div>
+    <div class="undo-wrap"><button class="icon-btn" id="boostBtn" title="Прокачать блюдо">⭐</button><span class="cnt-badge" id="boostBadge">1</span></div>
+    <div class="undo-wrap"><button class="icon-btn" id="clearBtn" title="Убрать со стола">🧽</button><span class="cnt-badge" id="clearBadge">1</span></div>
     <button class="icon-btn" id="restartBtn" title="Новая игра">🔄</button>
   </div>
   <div class="top-right">
-    <button class="icon-btn" id="chefBtn" title="Профиль шефа">👶<span class="book-badge" id="bookBadge" style="display:none"></span></button>
     <div class="menu-wrap"><button class="icon-btn" id="setBtn" title="Настройки">⚙️</button>
       <div class="menu-list set-list" id="setList">
         <div class="set-item" id="setSound"><span class="set-ic sndicon-on">🔊</span><span class="set-ic sndicon-off">🔈</span><span id="setSoundLbl">Звук</span><span class="set-state" id="setSoundState">вкл</span></div>
@@ -381,7 +410,10 @@
   <div class="stat"><div class="lbl" id="lblScore">Счёт</div><div class="val" id="score">0</div></div>
   <div class="stat"><div class="lbl" id="lblBest">Рекорд</div><div class="val" id="best">0</div></div>
 </div>
-<button class="cuisine-bar" id="cuisineBtn" title="Выбрать кухню"><span id="cuisineBtnFlag">🇷🇺</span><span class="cuisine-btn-lbl" id="cuisineBtnLbl">Выбрать кухню</span><span class="cuisine-bar-arrow">›</span></button>
+<div class="nav-row">
+  <button class="cuisine-bar" id="cuisineBtn" title="Выбрать кухню"><span id="cuisineBtnFlag">🇷🇺</span><span class="cuisine-btn-lbl" id="cuisineBtnLbl">Выбрать кухню</span><span class="cuisine-bar-arrow">›</span></button>
+  <button class="cuisine-bar chef-bar" id="chefBtn" title="Профиль шефа"><span class="chef-btn-em">👶</span><span class="cuisine-btn-lbl" id="chefBtnLbl">Профиль шефа</span><span class="book-badge" id="bookBadge" style="display:none"></span></button>
+</div>
 <div class="board-wrap" id="boardWrap">
   <div class="board" id="board"></div>
   <div class="tiles" id="tiles"></div>
@@ -504,6 +536,10 @@ const CUISINES=[
   em:['\uD83E\uDDC8','\uD83E\uDD50','\uD83E\uDDC0','\uD83C\uDF77','\uD83E\uDD56','\uD83C\uDF72','\uD83D\uDC0C','\uD83C\uDF46','\uD83C\uDF70','\uD83C\uDF69','\uD83C\uDF82'],
   names:{ru:['Масло','Круассан','Сыр','Вино','Багет','Луковый суп','Эскарго','Рататуй','Эклер','Профитроли','Торт'],en:['Butter','Croissant','Cheese','Wine','Baguette','Onion soup','Escargot','Ratatouille','Éclair','Profiteroles','Cake']}}
 ];
+// Бесконечный режим — «мировое меню» из блюд всех кухонь, без финала
+const ENDLESS={key:'endless',name:{ru:'Бесконечный режим',en:'Endless mode'},flag:'♾️',accent:'#8a7cf0',bg:'#14131c',boardbg:'#1d1b28',
+  em:['\uD83C\uDF45','\uD83E\uDD5F','\uD83E\uDDC0','\uD83C\uDF5C','\uD83C\uDF55','\uD83C\uDF63','\uD83C\uDF2E','\uD83C\uDF6E','\uD83C\uDF70','\uD83C\uDF82','\uD83D\uDC51'],
+  names:{ru:['Помидор','Пельмень','Сыр','Лапша','Пицца','Суши','Тако','Флан','Эклер','Торт','Корона'],en:['Tomato','Dumpling','Cheese','Noodles','Pizza','Sushi','Taco','Flan','Éclair','Cake','Crown']}};
 const TILE_TONES=['#2c2d34','#34333a','#3d3a3e','#473f40','#524542','#5e4b43','#6b5244','#785945','#866046','#946748','#a2704a'];
 
 // Факты о блюдах для кулинарной книги [по кухням][по блюду]
@@ -643,8 +679,10 @@ const ITEMS={
  fr:{em:'\uD83D\uDC51',name:{ru:'Корона гурмана',en:"Gourmet's crown"},desc:{ru:'Венец того, кто покорил все кухни мира.',en:'The crown of one who mastered every cuisine.'},flag:['#0055a4','#ffffff','#ef4135']}
 };
 function finalIdx(ci){return CUISINES[ci].em.length-1}
+function CC(){return endlessMode?ENDLESS:CUISINES[curCuisine];}
+function finalIdxCur(){return (endlessMode?ENDLESS:CUISINES[curCuisine]).em.length-1;}
 const SIZE=4;
-let cells,score,best,curCuisine,unlocked,won,over,lang,tileId,soundOn,vibroOn,prevState,tileEls,undoLeft,onbDone,xp,discovered,boostLeft,boostMode,clearLeft,items,justEarnedItem,totalScore,stats,movesThisGame,boostUsedThisGame,starsEarned,achievements,achState;
+let cells,score,best,curCuisine,unlocked,won,over,lang,tileId,soundOn,vibroOn,prevState,tileEls,undoLeft,onbDone,xp,discovered,boostLeft,boostMode,clearLeft,items,justEarnedItem,totalScore,stats,movesThisGame,boostUsedThisGame,starsEarned,achievements,achState,endlessNotified,endlessMode;
 function todayStr(){const d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();}
 function load(){best=+(localStorage.getItem('c2_best')||0);unlocked=+(localStorage.getItem('c2_unlocked')||0);curCuisine=+(localStorage.getItem('c2_cur')||0);lang=localStorage.getItem('c2_lang')||'ru';soundOn=localStorage.getItem('c2_sound')!=='0';vibroOn=localStorage.getItem('c2_vibro')!=='0';
  onbDone=localStorage.getItem('c2_onb')==='1';
@@ -657,6 +695,7 @@ function load(){best=+(localStorage.getItem('c2_best')||0);unlocked=+(localStora
  try{achState=JSON.parse(localStorage.getItem('c2_ach')||'{}');}catch(e){achState={};}
  if(!achState.unlocked)achState.unlocked=[];if(!achState.counters)achState.counters={};
  movesThisGame=0;boostUsedThisGame=false;
+ endlessMode=localStorage.getItem('c2_endless')==='1';
  const ud=localStorage.getItem('c2_undoDay'),today=todayStr();
  const mc=1+rankFor(xp).idx;
  if(ud===today){undoLeft=+(localStorage.getItem('c2_undoLeft')||0);boostLeft=+(localStorage.getItem('c2_boostLeft')||0);clearLeft=+(localStorage.getItem('c2_clearLeft')||0);}
@@ -664,12 +703,12 @@ function load(){best=+(localStorage.getItem('c2_best')||0);unlocked=+(localStora
  // синхронизируем уровень, чтобы updRank не начислял бонус повторно за уже учтённые уровни
  localStorage.setItem('c2_lastLevel',String(rankFor(xp).idx));}
 function maxCharges(){return 1+rankFor(xp).idx;}
-function save(){localStorage.setItem('c2_best',best);localStorage.setItem('c2_unlocked',unlocked);localStorage.setItem('c2_cur',curCuisine);localStorage.setItem('c2_lang',lang);localStorage.setItem('c2_sound',soundOn?'1':'0');localStorage.setItem('c2_vibro',vibroOn?'1':'0');localStorage.setItem('c2_undoLeft',String(undoLeft));localStorage.setItem('c2_boostLeft',String(boostLeft));localStorage.setItem('c2_clearLeft',String(clearLeft));localStorage.setItem('c2_undoDay',todayStr());localStorage.setItem('c2_xp',String(xp));localStorage.setItem('c2_discovered',JSON.stringify(discovered));localStorage.setItem('c2_items',JSON.stringify(items));localStorage.setItem('c2_total',String(totalScore));localStorage.setItem('c2_stats',JSON.stringify(stats));localStorage.setItem('c2_ach',JSON.stringify(achState));}
+function save(){localStorage.setItem('c2_best',best);localStorage.setItem('c2_unlocked',unlocked);localStorage.setItem('c2_cur',curCuisine);localStorage.setItem('c2_lang',lang);localStorage.setItem('c2_sound',soundOn?'1':'0');localStorage.setItem('c2_vibro',vibroOn?'1':'0');localStorage.setItem('c2_undoLeft',String(undoLeft));localStorage.setItem('c2_boostLeft',String(boostLeft));localStorage.setItem('c2_clearLeft',String(clearLeft));localStorage.setItem('c2_undoDay',todayStr());localStorage.setItem('c2_xp',String(xp));localStorage.setItem('c2_discovered',JSON.stringify(discovered));localStorage.setItem('c2_items',JSON.stringify(items));localStorage.setItem('c2_total',String(totalScore));localStorage.setItem('c2_stats',JSON.stringify(stats));localStorage.setItem('c2_ach',JSON.stringify(achState));localStorage.setItem('c2_endless',endlessMode?'1':'0');}
 function discoverDish(ci,idx){const k=CUISINES[ci].key;if(!discovered[k])discovered[k]=[];if(!discovered[k].includes(idx)){discovered[k].push(idx);return true;}return false;}
 function isDiscovered(ci,idx){const k=CUISINES[ci].key;return discovered[k]&&discovered[k].includes(idx);}
 // сохранение/загрузка поля конкретной кухни
 function saveBoard(){const data={cells:cells.map(r=>r.map(c=>c?{id:c.id,val:c.val,x:c.x,y:c.y}:null)),score,tileId,won,over};
- localStorage.setItem('c2_board_'+CUISINES[curCuisine].key,JSON.stringify(data));}
+ localStorage.setItem('c2_board_'+CC().key,JSON.stringify(data));}
 function loadBoard(ci){const raw=localStorage.getItem('c2_board_'+CUISINES[ci].key);if(!raw)return null;try{return JSON.parse(raw);}catch(e){return null;}}
 function updUndoUI(){const badge=document.getElementById('undoBadge'),btn=document.getElementById('undoBtn');
  badge.textContent=undoLeft;badge.style.display=undoLeft>0?'flex':'none';
@@ -721,7 +760,7 @@ function haptic(kind){
 }
 
 function maxTileVal(){let m=0;for(let y=0;y<SIZE;y++)for(let x=0;x<SIZE;x++)if(cells[y][x]&&cells[y][x].val>m)m=cells[y][x].val;return m;}
-function updProgress(){const goal=finalIdx(curCuisine)+1;const cur=Math.min(maxTileVal(),goal);
+function updProgress(){const goal=finalIdxCur()+1;const cur=Math.min(maxTileVal(),goal);
  const pct=Math.round((cur/goal)*100);
  document.getElementById('progfill').style.width=pct+'%';}
 function toast(msg,dur){const h=document.getElementById('hint');if(!h)return;h.textContent=msg;h.classList.add('show');clearTimeout(h._t);h._t=setTimeout(()=>h.classList.remove('show'),dur||1600);}
@@ -734,17 +773,19 @@ function showAchToast(a){const el=document.getElementById('achToast');if(!el)ret
 function applyLang(){const t=T[lang];document.getElementById('lblScore').textContent=t.score;document.getElementById('lblBest').textContent=t.best;document.documentElement.lang=lang;
  const ot=document.getElementById('onbText');if(ot)ot.textContent=t.onb;const ob=document.getElementById('onbBtn');if(ob)ob.textContent=t.onbBtn;
  if(typeof updRank==='function')updRank();}
-function applyTheme(){const c=CUISINES[curCuisine],fi=finalIdx(curCuisine),s=document.body.style;
+function applyTheme(){const c=CC(),fi=finalIdxCur(),s=document.body.style;
  s.setProperty('--bg',c.bg);s.setProperty('--boardbg',c.boardbg);s.setProperty('--accent',c.accent);s.setProperty('--accentGlow',c.accent+'22');
+ document.body.classList.toggle('endless-theme',!!endlessMode);
  const tf=document.getElementById('tabFlag');if(tf)tf.textContent=c.flag;const tl=document.getElementById('tabLabel');if(tl)tl.textContent=lang==='ru'?'КУХНИ':'CUISINES';
+ const cbl2=document.getElementById('chefBtnLbl');if(cbl2)cbl2.textContent=lang==='ru'?'Профиль':'Profile';
  const cbf=document.getElementById('cuisineBtnFlag');if(cbf)cbf.textContent=c.flag;
- const cbl=document.getElementById('cuisineBtnLbl');if(cbl)cbl.textContent=lang==='ru'?'Выбрать кухню':'Choose cuisine';
+ const cblc=document.getElementById('cuisineBtnLbl');if(cblc)cblc.textContent=endlessMode?(lang==='ru'?'Бесконечный':'Endless'):(lang==='ru'?'Кухни':'Cuisines');
  const tab=document.getElementById('cuisineTab');if(tab){tab.style.setProperty('--accent',c.accent);}}
 
 function emptyList(){const r=[];for(let y=0;y<SIZE;y++)for(let x=0;x<SIZE;x++)if(!cells[y][x])r.push({x,y});return r;}
 function spawn(){const e=emptyList();if(!e.length)return null;const c=e[Math.random()*e.length|0];const v=Math.random()<0.9?1:2;cells[c.y][c.x]={id:++tileId,val:v,x:c.x,y:c.y,isNew:true};if(discoverDish(curCuisine,v-1)){updBookBadge&&updBookBadge();}return cells[c.y][c.x];}
 function snapshot(){return JSON.stringify({cells:cells.map(r=>r.map(c=>c?{id:c.id,val:c.val,x:c.x,y:c.y}:null)),score});}
-function newGame(forceFresh){cells=Array.from({length:SIZE},()=>Array(SIZE).fill(null));score=0;won=false;over=false;tileId=0;prevState=null;
+function newGame(forceFresh){cells=Array.from({length:SIZE},()=>Array(SIZE).fill(null));score=0;won=false;over=false;tileId=0;prevState=null;endlessNotified=false;
  document.getElementById('tiles').innerHTML='';tileEls={};
  const saved=forceFresh?null:loadBoard(curCuisine);
  let startedFresh=false;
@@ -754,7 +795,7 @@ function newGame(forceFresh){cells=Array.from({length:SIZE},()=>Array(SIZE).fill
   if(won||over){cells=Array.from({length:SIZE},()=>Array(SIZE).fill(null));score=0;won=false;over=false;tileId=0;spawn();spawn();startedFresh=true;}
  }else{spawn();spawn();startedFresh=true;}
  if(startedFresh&&stats){stats.games=(stats.games||0)+1;save();}
- if(startedFresh){movesThisGame=0;boostUsedThisGame=false;}
+ if(startedFresh){movesThisGame=0;boostUsedThisGame=false;endlessNotified=false;}
  updUndoUI();applyLang();applyTheme();fullRender();hideOverlay();saveBoard();if(typeof updBoostUI==='function')updBoostUI();}
 function tilePx(){const layer=document.getElementById('tiles');const gap=9;const size=(layer.clientWidth-gap*3)/4;return{gap,size};}
 
@@ -769,7 +810,7 @@ function fullRender(){
  updProgress();
 }
 function placeTile(c){
- const cu=CUISINES[curCuisine],fi=finalIdx(curCuisine);const{gap,size}=tilePx();const idx=c.val-1;
+ const cu=CC(),fi=finalIdxCur();const{gap,size}=tilePx();const idx=c.val-1;
  let el=tileEls[c.id];
  if(!el){el=document.createElement('div');el.className='tile';el.style.width=size+'px';el.style.height=size+'px';
   el.style.left=(c.x*(size+gap))+'px';el.style.top=(c.y*(size+gap))+'px';
@@ -786,7 +827,7 @@ function getLineCoords(dir,i){const o=[];for(let j=0;j<SIZE;j++){let x,y;if(dir=
 
 function move(dir){
  if(over||won)return;
- const maxv=finalIdx(curCuisine)+1;
+ const maxv=finalIdxCur()+1;
  const beforeSnap=snapshot();
  let moved=false,gained=0,mergedLevels=[],mergedFinal=false;
  const removed=[]; // плитки, которые сольются и исчезнут
@@ -857,17 +898,27 @@ function res2pos(removed){const{gap,size}=tilePx();if(removed.length){const k=re
 function floatScore(val,pos){const layer=document.getElementById('tiles');if(!layer)return;const el=document.createElement('div');el.className='float-score';el.textContent='+'+val;el.style.left=pos.x+'px';el.style.top=pos.y+'px';layer.appendChild(el);setTimeout(()=>el.remove(),900);}
 let comboTimer;
 function showCombo(n){const el=document.getElementById('comboBadge');if(!el)return;el.textContent=(lang==='ru'?'Комбо ×':'Combo ×')+n;el.classList.remove('show');void el.offsetWidth;el.classList.add('show');clearTimeout(comboTimer);comboTimer=setTimeout(()=>el.classList.remove('show'),1100);}
-function flashFinalTile(){for(let y=0;y<SIZE;y++)for(let x=0;x<SIZE;x++){const c=cells[y][x];if(c&&c.val===finalIdx(curCuisine)+1){const el=tileEls[c.id];if(el){el.classList.add('finalflash');setTimeout(()=>el.classList.remove('finalflash'),900);}}}}
+function flashFinalTile(){for(let y=0;y<SIZE;y++)for(let x=0;x<SIZE;x++){const c=cells[y][x];if(c&&c.val===finalIdxCur()+1){const el=tileEls[c.id];if(el){el.classList.add('finalflash');setTimeout(()=>el.classList.remove('finalflash'),900);}}}}
 
 function canMove(){for(let y=0;y<SIZE;y++)for(let x=0;x<SIZE;x++){const c=cells[y][x];if(!c)return true;if(x<SIZE-1&&cells[y][x+1]&&cells[y][x+1].val===c.val)return true;if(y<SIZE-1&&cells[y+1][x]&&cells[y+1][x].val===c.val)return true;}return false;}
-function checkState(mf){const goal=finalIdx(curCuisine)+1;let reached=false;
+function checkState(mf){const goal=finalIdxCur()+1;let reached=false;
  for(let y=0;y<SIZE;y++)for(let x=0;x<SIZE;x++)if(cells[y][x]&&cells[y][x].val>=goal)reached=true;
- if(reached&&!won){won=true;if(score>best){best=score;document.getElementById('best').textContent=best;}const k0=CUISINES[curCuisine].key;if(!stats.bestPer[k0]||score>stats.bestPer[k0])stats.bestPer[k0]=score;stats.winsPer[k0]=(stats.winsPer[k0]||0)+1;
+ if(reached&&!won){
+  const k0=CC().key;
+  if(endlessMode){
+   // в бесконечном режиме вершина не заканчивает игру — просто отмечаем
+   if(!endlessNotified){endlessNotified=true;sndFinal();haptic('success');if(mf)flashFinalTile();toast(lang==='ru'?'Корона собрана! Продолжай — лимита нет ♾️':'Crown reached! Keep going — no limit ♾️',2400);}
+   return;
+  }
+  won=true;if(score>best){best=score;document.getElementById('best').textContent=best;}if(!stats.bestPer[k0]||score>stats.bestPer[k0])stats.bestPer[k0]=score;stats.winsPer[k0]=(stats.winsPer[k0]||0)+1;
   const stars=calcStars(curCuisine,movesThisGame,boostUsedThisGame);starsEarned=stars;if(!stats.stars[k0]||stars>stats.stars[k0])stats.stars[k0]=stars;
-  xp+=100;updRank();const ckey=CUISINES[curCuisine].key;justEarnedItem=!items.includes(ckey);if(justEarnedItem)items.push(ckey);if(curCuisine===unlocked&&curCuisine<CUISINES.length-1)unlocked++;localStorage.removeItem('c2_board_'+CUISINES[curCuisine].key);save();
+  xp+=100;updRank();const ckey=CC().key;justEarnedItem=!items.includes(ckey);if(justEarnedItem)items.push(ckey);if(curCuisine===unlocked&&curCuisine<CUISINES.length-1)unlocked++;localStorage.removeItem('c2_board_'+CC().key);save();
   checkAchievements({wonNoBoost:!boostUsedThisGame,wonKey:k0,gameScore:score});
   confetti();sndWin();haptic('success');setTimeout(showWin,560);return;}
- if(!canMove()){over=true;if(score>best){best=score;document.getElementById('best').textContent=best;}const k1=CUISINES[curCuisine].key;if(!stats.bestPer[k1]||score>stats.bestPer[k1])stats.bestPer[k1]=score;localStorage.removeItem('c2_board_'+CUISINES[curCuisine].key);save();sndLose();haptic('error');
+ if(!canMove()){over=true;if(score>best){best=score;document.getElementById('best').textContent=best;}const k1=CC().key;
+  if(endlessMode){if(!stats.endlessBest||score>stats.endlessBest)stats.endlessBest=score;}
+  else{if(!stats.bestPer[k1]||score>stats.bestPer[k1])stats.bestPer[k1]=score;}
+  localStorage.removeItem('c2_board_'+CC().key);save();sndLose();haptic('error');
   const bw=document.getElementById('boardWrap');bw.classList.add('gameover-shake');setTimeout(()=>bw.classList.remove('gameover-shake'),500);
   setTimeout(showLose,620);}}
 
@@ -879,17 +930,33 @@ function undo(){if(!prevState||over||won||undoLeft<=0)return;const s=JSON.parse(
 function buildBoard(){const b=document.getElementById('board');b.innerHTML='';for(let i=0;i<16;i++){const c=document.createElement('div');c.className='cell';b.appendChild(c);}}
 function switchCuisine(i){saveBoard();const fade=document.getElementById('transFade');
  const c=CUISINES[i];fade.style.background=c.bg;fade.classList.add('on');
- setTimeout(()=>{curCuisine=i;save();newGame();buildMenu();
+ setTimeout(()=>{endlessMode=false;curCuisine=i;save();newGame();buildMenu();
+  setTimeout(()=>fade.classList.remove('on'),120);},460);}
+function startEndless(){saveBoard();const fade=document.getElementById('transFade');
+ fade.style.background=ENDLESS.bg;fade.classList.add('on');
+ setTimeout(()=>{endlessMode=true;save();newGame(true);buildMenu();
   setTimeout(()=>fade.classList.remove('on'),120);},460);}
 function buildMenu(){buildDrawer();}
 function buildDrawer(){const list=document.getElementById('drawerList');if(!list)return;list.innerHTML='';
  const dt=document.getElementById('drawerTitle');if(dt)dt.textContent=lang==='ru'?'Кухни':'Cuisines';
+ // карточка бесконечного режима
+ const endlessUnlocked=(stats.games||0)>=1; // доступен сразу после первой партии
+ const ecard=document.createElement('div');
+ ecard.className='dr-card dr-endless'+(endlessMode?' active':'')+(endlessUnlocked?'':' locked');
+ ecard.style.setProperty('--cuaccent','#8a7cf0');
+ const ebest=stats.endlessBest||0;
+ ecard.innerHTML=`<span class="dr-flag">♾️</span>`+
+   `<div class="dr-info"><div class="dr-name">${lang==='ru'?'Бесконечный режим':'Endless mode'}</div>`+
+   `<div class="dr-sub">${endlessUnlocked?(lang==='ru'?'Рекорд: ':'Best: ')+ebest:(lang==='ru'?'Сыграй 1 партию':'Play 1 game')}</div></div>`+
+   `<span class="dr-goal">🏆</span>`;
+ if(endlessUnlocked)ecard.onclick=()=>{closeDrawer();setTimeout(startEndless,180);};
+ list.appendChild(ecard);
  CUISINES.forEach((c,i)=>{const locked=i>unlocked,fi=finalIdx(i);
   // прогресс по кухне: открыто блюд / всего
   const k=c.key;const discN=(discovered[k]||[]).length;const total=c.em.length;
   const isDone=discN>=total;
   const card=document.createElement('div');
-  card.className='dr-card'+(locked?' locked':'')+(i===curCuisine?' active':'');
+  card.className='dr-card'+(locked?' locked':'')+((!endlessMode&&i===curCuisine)?' active':'');
   card.style.setProperty('--cuaccent',c.accent);
   const sub=locked?(lang==='ru'?'Откроется позже':'Locked')
     :(lang==='ru'?('Открыто '+discN+'/'+total):('Found '+discN+'/'+total));
@@ -900,7 +967,7 @@ function buildDrawer(){const list=document.getElementById('drawerList');if(!list
     `<span class="dr-goal">${c.em[fi]}</span>`+
     starsHtml+
     (!locked?`<span class="dr-bar" style="width:${Math.round(discN/total*100)}%"></span>`:'');
-  if(!locked)card.onclick=()=>{closeDrawer();if(i!==curCuisine)setTimeout(()=>switchCuisine(i),180);};
+  if(!locked)card.onclick=()=>{closeDrawer();if(endlessMode||i!==curCuisine)setTimeout(()=>switchCuisine(i),180);};
   list.appendChild(card);
  });
  // заглушка: будущая кухня в разработке
@@ -909,7 +976,7 @@ function buildDrawer(){const list=document.getElementById('drawerList');if(!list
  list.appendChild(soon);}
 function openDrawer(){buildDrawer();document.getElementById('cuisineDrawer').classList.add('show');document.getElementById('drawerBackdrop').classList.add('show');const ct=document.getElementById('cuisineTab');if(ct)ct.classList.add('hidden');haptic('light');}
 function closeDrawer(){document.getElementById('cuisineDrawer').classList.remove('show');document.getElementById('drawerBackdrop').classList.remove('show');document.getElementById('cuisineTab').classList.remove('hidden');}
-function showWin(){const ov=document.getElementById('overlay');ov.classList.add('show');const t=T[lang],c=CUISINES[curCuisine],fi=finalIdx(curCuisine);
+function showWin(){const ov=document.getElementById('overlay');ov.classList.add('show');const t=T[lang],c=CC(),fi=finalIdxCur();
  const next=curCuisine<CUISINES.length-1?CUISINES[curCuisine+1]:null;
  document.getElementById('ovIcon').textContent=c.em[fi];document.getElementById('ovTitle').textContent='\uD83C\uDF89 '+t.win;
  let txt=`${t.collected} ${c.names[lang][fi]}!`;if(next)txt+=` ${t.unlocked} ${next.name[lang]} ${t.cuisine} ${next.flag}`;else txt+=' '+t.last;
@@ -946,7 +1013,7 @@ const ENCOURAGE={ru:[
  'Patience is the main ingredient. The rest will follow.',
  'A cook is made not by the result, but by returning to the stove.'
 ]};
-function showLose(){const ov=document.getElementById('overlay');ov.classList.add('show');const t=T[lang],c=CUISINES[curCuisine];
+function showLose(){const ov=document.getElementById('overlay');ov.classList.add('show');const t=T[lang],c=CC();
  document.getElementById('ovIcon').textContent=c.em[0];document.getElementById('ovTitle').textContent='\uD83D\uDE14 '+t.lose;
  const pool=ENCOURAGE[lang];const quote=pool[Math.random()*pool.length|0];
  document.getElementById('ovText').textContent=quote;
@@ -955,7 +1022,7 @@ function showLose(){const ov=document.getElementById('overlay');ov.classList.add
  const rw=document.getElementById('ovReward');if(rw)rw.style.display='none';
  const btns=document.getElementById('ovBtns');btns.innerHTML='';const b=document.createElement('button');b.className='btn';b.textContent=t.retry;b.onclick=()=>newGame(true);btns.appendChild(b);}
 function hideOverlay(){document.getElementById('overlay').classList.remove('show');}
-function confetti(){const wrap=document.querySelector('.board-wrap');const c=CUISINES[curCuisine];const cols=[c.accent,'#fff','rgba(255,255,255,.6)'];
+function confetti(){const wrap=document.querySelector('.board-wrap');const c=CC();const cols=[c.accent,'#fff','rgba(255,255,255,.6)'];
  for(let i=0;i<40;i++){const p=document.createElement('div');p.className='confetti';p.style.background=cols[i%cols.length];
   p.style.left=(20+Math.random()*60)+'%';p.style.top='42%';wrap.appendChild(p);
   const ang=Math.random()*Math.PI*2,dist=80+Math.random()*170,dur=600+Math.random()*450;
@@ -970,7 +1037,7 @@ function updRank(){const{rank,idx}=rankFor(xp);const nx=nextRank(idx);
   if(typeof showLevelUp==='function')showLevelUp(rank);
   if(typeof checkAchievements==='function')checkAchievements({});}
  else if(idx<stored){localStorage.setItem('c2_lastLevel',String(idx));}
- const cb=document.getElementById('chefBtn');if(cb){const tn=[...cb.childNodes].find(n=>n.nodeType===3);if(tn)tn.textContent=rank.em;else cb.insertBefore(document.createTextNode(rank.em),cb.firstChild);}
+ const cbe=document.getElementById('chefBtn');if(cbe){const em=cbe.querySelector('.chef-btn-em');if(em)em.textContent=rank.em;}
  let pct=100;if(nx){const span=nx.xp-rank.xp;pct=Math.round(((xp-rank.xp)/span)*100);}
  // экран профиля (если открыт/существует)
  const be=document.getElementById('chefBigEm');if(be){be.textContent=rank.em;
@@ -990,7 +1057,7 @@ function openAch(){const sc=document.getElementById('achScreen');sc.classList.ad
   it.innerHTML=`<span class="ai-em">${a.em}</span><div><div class="ai-name">${a.name[lang]}</div><div class="ai-desc">${a.desc[lang]}</div></div>${got?'<span class="ai-check">✓</span>':'<span class="ai-check" style="opacity:.3">🔒</span>'}`;
   body.appendChild(it);});
  haptic('light');}
-function closeAch(){document.getElementById('achScreen').classList.remove('show');}
+function closeAch(){document.getElementById('achScreen').classList.remove('show');openChef();}
 function buildStats(){const rows=document.getElementById('statsRows');if(!rows)return;
  document.getElementById('statsTitle').textContent=lang==='ru'?'Статистика':'Statistics';
  const totalWins=Object.values(stats.winsPer||{}).reduce((a,b)=>a+b,0);
@@ -1019,7 +1086,7 @@ function buildInventory(){const grid=document.getElementById('invGrid');if(!grid
 let itemPopTimer;
 function showLevelUp(rank){const pop=document.getElementById('itemPop');if(!pop)return;
  const fb=document.getElementById('ipFlag');if(fb)fb.style.display='none';
- const{idx}=rankFor(xp);pop.style.setProperty('--accent',CUISINES[curCuisine].accent);
+ const{idx}=rankFor(xp);pop.style.setProperty('--accent',CC().accent);
  document.getElementById('ipEm').textContent=rank.em;
  document.getElementById('ipName').textContent=(lang==='ru'?'Новое звание: ':'New rank: ')+rank[lang];
  document.getElementById('ipDesc').textContent=(lang==='ru'?('+1 заряд каждому бустеру в день (теперь '+(1+idx)+')'):('+1 charge to each booster per day (now '+(1+idx)+')'));
@@ -1082,7 +1149,7 @@ function toggleBoost(){
  if(boostMode){bh.textContent=T[lang].boostArm;bh.classList.add('show');haptic('light');}
  else bh.classList.remove('show');}
 function applyBoostTo(cell){
- const maxv=finalIdx(curCuisine)+1;if(cell.val>=maxv){return;}
+ const maxv=finalIdxCur()+1;if(cell.val>=maxv){return;}
  cell.val++;boostLeft--;boostUsedThisGame=true;boostMode=false;
  document.getElementById('boardWrap').classList.remove('boostmode');
  document.getElementById('boostBtn').classList.remove('armed');
@@ -1105,9 +1172,7 @@ document.getElementById('tiles').addEventListener('click',e=>{
 /* ---------- КОЛЛЕКЦИЯ ---------- */
 function totalDishes(){return CUISINES.reduce((s,c)=>s+c.em.length,0);}
 function discoveredCount(){let n=0;CUISINES.forEach((c,ci)=>{c.em.forEach((_,i)=>{if(isDiscovered(ci,i))n++;});});return n;}
-function updBookBadge(){const b=document.getElementById('bookBadge');if(!b)return;
- // показать точку если есть неоткрытые (намёк что есть что коллекционировать) — лучше скрывать когда всё открыто
- b.style.display=discoveredCount()<totalDishes()?'block':'none';}
+function updBookBadge(){const b=document.getElementById('bookBadge');if(!b)return;b.style.display='none';}
 function openBook(){const sc=document.getElementById('bookScreen');sc.classList.add('show');
  document.getElementById('bookTitle').textContent=T[lang].book;
  document.getElementById('bookProg').textContent=discoveredCount()+' / '+totalDishes();
@@ -1124,7 +1189,7 @@ function openBook(){const sc=document.getElementById('bookScreen');sc.classList.
   body.appendChild(sec);
  });
  haptic('light');}
-function closeBook(){document.getElementById('bookScreen').classList.remove('show');}
+function closeBook(){document.getElementById('bookScreen').classList.remove('show');openChef();}
 
 document.addEventListener('keydown',e=>{
  if(document.getElementById('cuisineDrawer').classList.contains('show')){if(e.key==='Escape')closeDrawer();return;}
@@ -1201,7 +1266,7 @@ function maybeBoosterIntro(){
  localStorage.setItem('c2_seenBoosterIntro','1');
  const pop=document.getElementById('itemPop');if(!pop)return;
  const fb=document.getElementById('ipFlag');if(fb)fb.style.display='none';
- pop.style.setProperty('--accent',CUISINES[curCuisine].accent);
+ pop.style.setProperty('--accent',CC().accent);
  document.getElementById('ipEm').textContent='🎟️';
  document.getElementById('ipName').textContent=lang==='ru'?'Твои бустеры':'Your boosters';
  document.getElementById('ipDesc').innerHTML=lang==='ru'
