@@ -114,15 +114,23 @@
     background:var(--tilebg,#2c2d34);
     box-shadow:0 2px 8px rgba(0,0,0,.22);
     transition:left .13s cubic-bezier(.25,.6,.3,1),top .13s cubic-bezier(.25,.6,.3,1),background .15s}
-  .tile .em{font-size:min(10.5vw,44px);line-height:1;position:relative;z-index:2}
+  .tile .em{font-size:min(10.5vw,44px);line-height:1;position:relative;z-index:2;display:inline-block}
   .tile .nm{font-size:9.5px;margin-top:2px;font-weight:600;color:rgba(255,255,255,.55);position:relative;z-index:2;letter-spacing:.2px}
   .tile.spawn{animation:spawn .2s cubic-bezier(.3,1.4,.5,1) .04s both}
   @keyframes spawn{0%{transform:scale(0)}100%{transform:scale(1)}}
   .tile.clearing{animation:clearOut .3s ease forwards}
   @keyframes clearOut{0%{transform:scale(1);opacity:1}40%{transform:scale(1.15);opacity:1}100%{transform:scale(0);opacity:0}}
-  .tile.pop{animation:pop .2s ease}
-  @keyframes pop{0%{transform:scale(1)}45%{transform:scale(1.18)}100%{transform:scale(1)}}
+  .tile.pop{animation:pop .34s cubic-bezier(.34,1.56,.5,1)}
+  @keyframes pop{0%{transform:scale(1)}30%{transform:scale(1.28) rotate(-3deg)}55%{transform:scale(.94) rotate(2deg)}75%{transform:scale(1.08) rotate(-1deg)}100%{transform:scale(1) rotate(0)}}
+  .tile.pop .em{animation:emWiggle .42s ease}
+  @keyframes emWiggle{0%{transform:scale(1)}25%{transform:scale(1.35) translateY(-3px)}50%{transform:scale(1.1) translateY(0)}70%{transform:scale(1.18) translateY(-1px)}100%{transform:scale(1) translateY(0)}}
   .tile.isfinal{box-shadow:0 0 0 2px var(--accent,#e0a060),0 2px 12px rgba(0,0,0,.3)}
+  #comboFlash{position:absolute;inset:0;border-radius:18px;pointer-events:none;z-index:25;opacity:0}
+  #comboFlash.cf-on{animation:cfFlash .6s ease-out;box-shadow:inset 0 0 40px 6px var(--accent,#e0a060)}
+  #comboFlash.cf-big{animation:cfFlash .6s ease-out;box-shadow:inset 0 0 60px 12px var(--accent,#e0a060)}
+  #comboFlash.cf-mega{animation:cfFlashMega .65s ease-out;box-shadow:inset 0 0 80px 18px var(--accent,#e0a060)}
+  @keyframes cfFlash{0%{opacity:0}25%{opacity:.55}100%{opacity:0}}
+  @keyframes cfFlashMega{0%{opacity:0}20%{opacity:.8}100%{opacity:0}}
   .overlay{position:absolute;inset:0;background:rgba(10,11,14,.92);backdrop-filter:blur(8px);border-radius:18px;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:22px 24px;z-index:30;overflow-y:auto}
   .overlay.show{display:flex;animation:ovIn .3s ease}
   @keyframes ovIn{from{opacity:0}to{opacity:1}}
@@ -164,7 +172,7 @@
   @keyframes comboPop{0%{opacity:0;transform:translateX(-50%) scale(.5) rotate(-6deg)}25%{opacity:1;transform:translateX(-50%) scale(1.15) rotate(3deg)}40%{transform:translateX(-50%) scale(1) rotate(0)}80%{opacity:1}100%{opacity:0;transform:translateX(-50%) scale(1) translateY(-20px)}}
   .tile.finalflash{animation:finalFlash .9s ease-out;z-index:5}
   @keyframes finalFlash{0%{box-shadow:0 0 0 0 #fff}30%{box-shadow:0 0 24px 8px #fff,0 0 40px 16px var(--accent,#e0a060);transform:scale(1.12)}100%{box-shadow:0 0 0 0 transparent;transform:scale(1)}}
-  #achToast{position:fixed;left:50%;top:64px;transform:translateX(-50%) translateY(-80px);z-index:140;display:flex;align-items:center;gap:11px;background:#1f2026;border:1px solid var(--accent,#e0a060);border-radius:14px;padding:11px 16px 11px 13px;box-shadow:0 12px 36px rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .3s,transform .3s;max-width:320px}
+  #achToast{position:fixed;left:50%;top:auto;bottom:28px;transform:translateX(-50%) translateY(80px);z-index:140;display:flex;align-items:center;gap:11px;background:#1f2026;border:1px solid var(--accent,#e0a060);border-radius:14px;padding:11px 16px 11px 13px;box-shadow:0 12px 36px rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .3s,transform .3s;max-width:320px}
   #achToast.show{opacity:1;transform:translateX(-50%) translateY(0)}
   #achToast .at-em{font-size:30px}
   #achToast .at-label{font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--accent,#e0a060)}
@@ -198,6 +206,12 @@
   .sound-off .sndicon-on{display:none}.sndicon-off{display:none}.sound-off .sndicon-off{display:inline}
   .cnt-badge{position:absolute;top:-5px;right:-5px;background:var(--accent,#e0a060);color:#15161a;font-size:10px;font-weight:800;min-width:15px;height:15px;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:0 3px;line-height:1}
   .undo-wrap{position:relative}
+  .boost-wrap{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px}
+  .boost-lbl{font-size:8.5px;font-weight:700;opacity:.55;letter-spacing:.1px;line-height:1;white-space:nowrap}
+  .boost-wrap .cnt-badge{top:-4px;right:-4px}
+  .restart-btn{display:inline-flex;align-items:center;gap:4px;padding:9px 11px}
+  .restart-btn .restart-ic{font-size:14px}
+  .restart-btn .restart-lbl{font-size:12px;font-weight:800}
   .icon-btn.primary{background:var(--accentSh,#e0a06033);box-shadow:inset 0 0 0 1px var(--accent,#e0a060)}
   /* вертикальная кнопка-ручка кухонь */
   #cuisineTab{display:none}
@@ -312,14 +326,29 @@
   .inv-count{font-size:12px;opacity:.6;font-weight:700;color:var(--accent,#e0a060)}
   .inv-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
   .inv-slot{aspect-ratio:1;border-radius:13px;background:rgba(0,0,0,.22);display:flex;align-items:center;justify-content:center;font-size:30px;position:relative;cursor:default;box-shadow:inset 0 2px 6px rgba(0,0,0,.3);transition:transform .15s}
-  .inv-slot.filled{background:linear-gradient(150deg,rgba(255,255,255,.09),rgba(255,255,255,.03));box-shadow:inset 0 0 0 1px var(--accent,#e0a060)55,0 2px 8px rgba(0,0,0,.25);cursor:pointer;position:relative;overflow:hidden}
+  .inv-slot.filled{background:
+      radial-gradient(circle at 50% 30%,var(--accentGlow2,#e0a06033) 0%,transparent 60%),
+      linear-gradient(160deg,rgba(255,255,255,.10),rgba(255,255,255,.02));
+    box-shadow:inset 0 0 0 1px var(--accent,#e0a060)66,inset 0 1px 0 rgba(255,255,255,.12),0 4px 14px rgba(0,0,0,.35);
+    cursor:pointer;position:relative;overflow:hidden}
   .inv-slot.filled:active{transform:scale(.94)}
-  .it-flagbg{position:absolute;inset:0;opacity:.28;border-radius:13px;
-    -webkit-mask-image:radial-gradient(circle at 50% 45%,#000 30%,transparent 78%);
-    mask-image:radial-gradient(circle at 50% 45%,#000 30%,transparent 78%)}
-  .inv-slot.filled::after{content:'';position:absolute;inset:0;border-radius:13px;background:radial-gradient(circle at 50% 38%,transparent 40%,rgba(0,0,0,.35) 100%);pointer-events:none}
+  /* мягкое сияние-ореол за предметом */
+  .it-halo{position:absolute;left:50%;top:42%;width:72%;height:72%;transform:translate(-50%,-50%);border-radius:50%;
+    background:radial-gradient(circle,var(--accent,#e0a060)55 0%,var(--accent,#e0a060)22 40%,transparent 70%);
+    filter:blur(2px);pointer-events:none;animation:haloPulse 3.5s ease-in-out infinite}
+  @keyframes haloPulse{0%,100%{opacity:.55;transform:translate(-50%,-50%) scale(.95)}50%{opacity:.9;transform:translate(-50%,-50%) scale(1.08)}}
+  /* диагональный блик */
+  .it-shine{position:absolute;inset:0;border-radius:13px;pointer-events:none;overflow:hidden}
+  .it-shine::before{content:'';position:absolute;top:-60%;left:-60%;width:60%;height:220%;
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,.18),transparent);
+    transform:rotate(20deg);animation:shineSweep 5s ease-in-out infinite}
+  @keyframes shineSweep{0%,72%{left:-60%}88%,100%{left:140%}}
+  /* искорка в углу */
+  .it-spark{position:absolute;top:7px;right:8px;font-size:9px;opacity:.7;pointer-events:none;animation:sparkTw 2.6s ease-in-out infinite}
+  @keyframes sparkTw{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:.9;transform:scale(1.15)}}
   .inv-slot.empty{opacity:.5;font-size:20px}
-  .inv-slot .it-em{filter:drop-shadow(0 2px 4px rgba(0,0,0,.5));position:relative;z-index:2}
+  .inv-slot .it-em{filter:drop-shadow(0 3px 5px rgba(0,0,0,.55));position:relative;z-index:3;transition:transform .2s}
+  .inv-slot.filled:hover .it-em{transform:scale(1.08)}
   /* tooltip предмета */
   .item-pop{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);z-index:130;
     background:#1f2026;border:1px solid var(--accent,#e0a060);border-radius:16px;padding:16px 18px;width:86%;max-width:340px;
@@ -359,6 +388,20 @@
   /* онбординг */
   #onb{position:absolute;inset:0;z-index:40;background:rgba(10,11,14,.82);backdrop-filter:blur(3px);border-radius:18px;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px}
   #onb.show{display:flex;animation:ovIn .3s ease}
+  /* экран-интро бустеров */
+  #boosterIntro{position:fixed;inset:0;z-index:160;background:rgba(8,9,12,.82);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;padding:24px}
+  #boosterIntro.show{display:flex;animation:ovIn .3s ease}
+  #boosterIntro .bi-card{width:100%;max-width:360px;background:linear-gradient(165deg,#23242c,#191a20);border:1px solid rgba(255,255,255,.1);border-radius:22px;padding:24px 22px;box-shadow:0 18px 50px rgba(0,0,0,.55);animation:biPop .4s cubic-bezier(.3,1.4,.5,1)}
+  @keyframes biPop{0%{transform:scale(.85);opacity:0}100%{transform:scale(1);opacity:1}}
+  #boosterIntro .bi-title{font-size:21px;font-weight:900;text-align:center;margin-bottom:6px}
+  #boosterIntro .bi-sub{font-size:13px;opacity:.6;text-align:center;line-height:1.4;margin-bottom:18px}
+  #boosterIntro .bi-list{display:flex;flex-direction:column;gap:11px;margin-bottom:20px}
+  #boosterIntro .bi-row{display:flex;align-items:center;gap:13px;background:rgba(255,255,255,.05);border-radius:14px;padding:12px 14px}
+  #boosterIntro .bi-ic{font-size:26px;flex-shrink:0;width:34px;text-align:center}
+  #boosterIntro .bi-txt{display:flex;flex-direction:column;gap:2px}
+  #boosterIntro .bi-txt b{font-size:15px;font-weight:800}
+  #boosterIntro .bi-txt span{font-size:12px;opacity:.6;line-height:1.3}
+  #boosterIntro .btn{width:100%}
   #onb .hand{font-size:48px;animation:swipeHand 2.6s ease-in-out infinite;margin-top:6px}
   @keyframes swipeHand{0%{transform:translateX(40px) rotate(8deg);opacity:0}10%{opacity:1}40%{transform:translateX(-30px) rotate(-8deg);opacity:1}55%{transform:translateX(-30px);opacity:.6}70%,100%{transform:translateX(40px) rotate(8deg);opacity:0}}
   /* демо-поле в онбординге */
@@ -389,12 +432,12 @@
 <div id="transFade"></div>
 <div class="top">
   <div class="top-left">
-    <div class="undo-wrap"><button class="icon-btn" id="undoBtn" title="Отменить ход">↩️</button><span class="cnt-badge" id="undoBadge">1</span></div>
-    <div class="undo-wrap"><button class="icon-btn" id="boostBtn" title="Прокачать блюдо">⭐</button><span class="cnt-badge" id="boostBadge">1</span></div>
-    <div class="undo-wrap"><button class="icon-btn" id="clearBtn" title="Убрать со стола">🧽</button><span class="cnt-badge" id="clearBadge">1</span></div>
-    <button class="icon-btn" id="restartBtn" title="Новая игра">🔄</button>
+    <div class="boost-wrap"><button class="icon-btn boost-ic" id="undoBtn" title="Отменить последний ход">↩️</button><span class="cnt-badge" id="undoBadge">1</span><span class="boost-lbl" id="undoLbl">Отмена</span></div>
+    <div class="boost-wrap"><button class="icon-btn boost-ic" id="boostBtn" title="Поднять блюдо на уровень выше">⭐</button><span class="cnt-badge" id="boostBadge">1</span><span class="boost-lbl" id="boostLbl">Прокачка</span></div>
+    <div class="boost-wrap"><button class="icon-btn boost-ic" id="clearBtn" title="Убрать мелкие блюда со стола">🧽</button><span class="cnt-badge" id="clearBadge">1</span><span class="boost-lbl" id="clearLbl">Уборка</span></div>
   </div>
   <div class="top-right">
+    <button class="icon-btn restart-btn" id="restartBtn" title="Начать заново"><span class="restart-ic">🔄</span><span class="restart-lbl" id="restartLbl">Заново</span></button>
     <div class="menu-wrap"><button class="icon-btn" id="setBtn" title="Настройки">⚙️</button>
       <div class="menu-list set-list" id="setList">
         <div class="set-item" id="setSound"><span class="set-ic sndicon-on">🔊</span><span class="set-ic sndicon-off">🔈</span><span id="setSoundLbl">Звук</span><span class="set-state" id="setSoundState">вкл</span></div>
@@ -430,6 +473,18 @@
     <button class="btn" id="onbBtn">Понятно</button>
   </div>
   <div class="boost-hint" id="boostHint"></div>
+</div>
+<div id="boosterIntro">
+  <div class="bi-card">
+    <div class="bi-title" id="biTitle">Твои помощники 🎟️</div>
+    <div class="bi-sub" id="biSub">По одному заряду в день. Больше открывается с уровнями шефа.</div>
+    <div class="bi-list">
+      <div class="bi-row"><span class="bi-ic">↩️</span><div class="bi-txt"><b id="biUndo">Отмена</b><span id="biUndoD">вернуть последний ход назад</span></div></div>
+      <div class="bi-row"><span class="bi-ic">⭐</span><div class="bi-txt"><b id="biBoost">Прокачка</b><span id="biBoostD">поднять выбранное блюдо на уровень выше</span></div></div>
+      <div class="bi-row"><span class="bi-ic">🧽</span><div class="bi-txt"><b id="biClear">Уборка</b><span id="biClearD">убрать со стола мелкие блюда</span></div></div>
+    </div>
+    <button class="btn" id="biBtn">Понятно</button>
+  </div>
 </div>
 <div class="prog-line" id="floatProg">
   <div class="fp-track"><div class="fp-fill" id="progfill"></div></div>
@@ -561,11 +616,11 @@ const FACTS={
 // Звания шефа: порог XP -> название
 const RANKS=[
  {xp:0,ru:'Поварёнок',en:'Trainee',em:'\uD83E\uDDD2',badge:''},
- {xp:16000,ru:'Повар',en:'Cook',em:'\uD83E\uDDD1\u200D\uD83C\uDF73',badge:''},
- {xp:50000,ru:'Су-шеф',en:'Sous-chef',em:'\uD83D\uDC68\u200D\uD83C\uDF73',badge:'\uD83C\uDF7D\uFE0F'},
- {xp:120000,ru:'Шеф',en:'Chef',em:'\uD83D\uDC69\u200D\uD83C\uDF73',badge:'\u2B50'},
- {xp:260000,ru:'Мастер-шеф',en:'Master chef',em:'\uD83D\uDC68\u200D\uD83C\uDF73',badge:'\uD83C\uDFC5'},
- {xp:560000,ru:'Мишлен',en:'Michelin',em:'\uD83D\uDC69\u200D\uD83C\uDF73',badge:'\uD83D\uDC51'}
+ {xp:5300,ru:'Повар',en:'Cook',em:'\uD83E\uDDD1\u200D\uD83C\uDF73',badge:''},
+ {xp:16700,ru:'Су-шеф',en:'Sous-chef',em:'\uD83D\uDC68\u200D\uD83C\uDF73',badge:'\uD83C\uDF7D\uFE0F'},
+ {xp:40000,ru:'Шеф',en:'Chef',em:'\uD83D\uDC69\u200D\uD83C\uDF73',badge:'\u2B50'},
+ {xp:86700,ru:'Мастер-шеф',en:'Master chef',em:'\uD83D\uDC68\u200D\uD83C\uDF73',badge:'\uD83C\uDFC5'},
+ {xp:186700,ru:'Мишлен',en:'Michelin',em:'\uD83D\uDC69\u200D\uD83C\uDF73',badge:'\uD83D\uDC51'}
 ];
 function rankFor(xp){let r=RANKS[0],idx=0;for(let i=0;i<RANKS.length;i++)if(xp>=RANKS[i].xp){r=RANKS[i];idx=i;}return{rank:r,idx};}
 function nextRank(idx){return idx<RANKS.length-1?RANKS[idx+1]:null;}
@@ -682,7 +737,7 @@ function finalIdx(ci){return CUISINES[ci].em.length-1}
 function CC(){return endlessMode?ENDLESS:CUISINES[curCuisine];}
 function finalIdxCur(){return (endlessMode?ENDLESS:CUISINES[curCuisine]).em.length-1;}
 const SIZE=4;
-let cells,score,best,curCuisine,unlocked,won,over,lang,tileId,soundOn,vibroOn,prevState,tileEls,undoLeft,onbDone,xp,discovered,boostLeft,boostMode,clearLeft,items,justEarnedItem,totalScore,stats,movesThisGame,boostUsedThisGame,starsEarned,achievements,achState,endlessNotified,endlessMode;
+let cells,score,best,curCuisine,unlocked,won,over,lang,tileId,soundOn,vibroOn,prevState,tileEls,undoLeft,onbDone,xp,discovered,boostLeft,boostMode,clearLeft,items,justEarnedItem,totalScore,stats,movesThisGame,boostUsedThisGame,starsEarned,achievements,achState,endlessNotified,endlessMode,comboStreak,recordBeaten;
 function todayStr(){const d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();}
 function load(){best=+(localStorage.getItem('c2_best')||0);unlocked=+(localStorage.getItem('c2_unlocked')||0);curCuisine=+(localStorage.getItem('c2_cur')||0);lang=localStorage.getItem('c2_lang')||'ru';soundOn=localStorage.getItem('c2_sound')!=='0';vibroOn=localStorage.getItem('c2_vibro')!=='0';
  onbDone=localStorage.getItem('c2_onb')==='1';
@@ -709,7 +764,7 @@ function isDiscovered(ci,idx){const k=CUISINES[ci].key;return discovered[k]&&dis
 // сохранение/загрузка поля конкретной кухни
 function saveBoard(){const data={cells:cells.map(r=>r.map(c=>c?{id:c.id,val:c.val,x:c.x,y:c.y}:null)),score,tileId,won,over};
  localStorage.setItem('c2_board_'+CC().key,JSON.stringify(data));}
-function loadBoard(ci){const raw=localStorage.getItem('c2_board_'+CUISINES[ci].key);if(!raw)return null;try{return JSON.parse(raw);}catch(e){return null;}}
+function loadBoard(ci){const key=endlessMode?'endless':CUISINES[ci].key;const raw=localStorage.getItem('c2_board_'+key);if(!raw)return null;try{return JSON.parse(raw);}catch(e){return null;}}
 function updUndoUI(){const badge=document.getElementById('undoBadge'),btn=document.getElementById('undoBtn');
  badge.textContent=undoLeft;badge.style.display=undoLeft>0?'flex':'none';
  btn.disabled=!(prevState&&undoLeft>0&&!won&&!over);}
@@ -730,12 +785,32 @@ function tone(freq,vol,dur,type,when){if(!soundOn)return;try{const a=ac();const 
  f.type='lowpass';f.frequency.value=1600;
  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+dur);
  o.connect(f);f.connect(g);g.connect(a.destination);o.start(t);o.stop(t+dur+.02);}catch(e){}}
-function sndMerge(level){const base=90+level*14;punk(base,.32,.22);} // глубокий, теплеет вниз с уровнем... вверх с уровнем
+function sndMerge(level){const base=90+level*14;punk(base,.32,.22);}
+// мягкий «пуньк» при слиянии: тихий, тёплый, с глухим фильтром и плавной атакой
+function softPunk(freq,vol,dur){if(!soundOn)return;try{const a=ac();const t=a.currentTime;
+ const o=a.createOscillator(),g=a.createGain(),f=a.createBiquadFilter();
+ o.type='sine';o.frequency.setValueAtTime(freq*1.25,t);o.frequency.exponentialRampToValueAtTime(freq,t+.10);
+ f.type='lowpass';f.frequency.setValueAtTime(520,t);f.Q.value=.4; // глуше
+ g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+dur); // мягкая атака
+ o.connect(f);f.connect(g);g.connect(a.destination);o.start(t);o.stop(t+dur+.02);}catch(e){}}
+function sndMergeStep(level,step){if(!soundOn)return;
+ const base=150+level*8;softPunk(base,.14,.22); // тихий тёплый пуньк
+ // лёгкий звонкий призвук — только на крупных комбо, очень тихо
+ if(step>=2){const scale=[0,0,587,659,740,831,932,1047];const note=scale[Math.min(step,scale.length-1)];
+  if(note>0)tone(note,.045+Math.min(step,5)*.006,.14,'sine',ac().currentTime+.03);}
+}
 function sndMove(){punk(70,.08,.10);}
 function sndFinal(){punk(140,.34,.26);setTimeout(()=>tone(330,.16,.3,'sine'),90);}
 function sndWin(){[262,330,392,523].forEach((f,i)=>tone(f,.16,.5,'sine',ac().currentTime+i*.12));}
 function sndReward(){[392,523,659].forEach((f,i)=>tone(f,.14,.4,'triangle',ac().currentTime+i*.09));setTimeout(()=>tone(784,.12,.5,'sine'),280);}
 function sndLose(){[196,165,131].forEach((f,i)=>tone(f,.15,.4,'sine',ac().currentTime+i*.14));}
+
+/* ---------- (музыка удалена) ---------- */
+let musicOn=false;
+function startMusic(){}
+function stopMusicLoop(){}
+function toggleMusic(){}
+function restartMusicIfPlaying(){}
 
 /* ---------- ВИБРО ---------- */
 function haptic(kind){
@@ -772,6 +847,9 @@ function showAchToast(a){const el=document.getElementById('achToast');if(!el)ret
  el.classList.add('show');sndReward();haptic('success');clearTimeout(achToastTimer);achToastTimer=setTimeout(()=>el.classList.remove('show'),3200);}
 function applyLang(){const t=T[lang];document.getElementById('lblScore').textContent=t.score;document.getElementById('lblBest').textContent=t.best;document.documentElement.lang=lang;
  const ot=document.getElementById('onbText');if(ot)ot.textContent=t.onb;const ob=document.getElementById('onbBtn');if(ob)ob.textContent=t.onbBtn;
+ const ru=lang==='ru';
+ const setTxt=(id,r,e)=>{const el=document.getElementById(id);if(el)el.textContent=ru?r:e;};
+ setTxt('undoLbl','Отмена','Undo');setTxt('boostLbl','Прокачка','Boost');setTxt('clearLbl','Уборка','Clear');setTxt('restartLbl','Заново','Restart');
  if(typeof updRank==='function')updRank();}
 function applyTheme(){const c=CC(),fi=finalIdxCur(),s=document.body.style;
  s.setProperty('--bg',c.bg);s.setProperty('--boardbg',c.boardbg);s.setProperty('--accent',c.accent);s.setProperty('--accentGlow',c.accent+'22');
@@ -785,15 +863,20 @@ function applyTheme(){const c=CC(),fi=finalIdxCur(),s=document.body.style;
 function emptyList(){const r=[];for(let y=0;y<SIZE;y++)for(let x=0;x<SIZE;x++)if(!cells[y][x])r.push({x,y});return r;}
 function spawn(){const e=emptyList();if(!e.length)return null;const c=e[Math.random()*e.length|0];const v=Math.random()<0.9?1:2;cells[c.y][c.x]={id:++tileId,val:v,x:c.x,y:c.y,isNew:true};if(discoverDish(curCuisine,v-1)){updBookBadge&&updBookBadge();}return cells[c.y][c.x];}
 function snapshot(){return JSON.stringify({cells:cells.map(r=>r.map(c=>c?{id:c.id,val:c.val,x:c.x,y:c.y}:null)),score});}
-function newGame(forceFresh){cells=Array.from({length:SIZE},()=>Array(SIZE).fill(null));score=0;won=false;over=false;tileId=0;prevState=null;endlessNotified=false;
+function newGame(forceFresh){cells=Array.from({length:SIZE},()=>Array(SIZE).fill(null));score=0;won=false;over=false;tileId=0;prevState=null;endlessNotified=false;comboStreak=0;recordBeaten=false;
  document.getElementById('tiles').innerHTML='';tileEls={};
  const saved=forceFresh?null:loadBoard(curCuisine);
  let startedFresh=false;
- if(saved&&saved.cells){
-  cells=saved.cells.map(r=>r.map(c=>c?{id:c.id,val:c.val,x:c.x,y:c.y}:null));
-  score=saved.score||0;tileId=saved.tileId||0;won=!!saved.won;over=!!saved.over;
-  if(won||over){cells=Array.from({length:SIZE},()=>Array(SIZE).fill(null));score=0;won=false;over=false;tileId=0;spawn();spawn();startedFresh=true;}
- }else{spawn();spawn();startedFresh=true;}
+ try{
+  if(saved&&saved.cells&&Array.isArray(saved.cells)){
+   cells=saved.cells.map(r=>r.map(c=>c?{id:c.id,val:c.val,x:c.x,y:c.y}:null));
+   score=saved.score||0;tileId=saved.tileId||0;won=!!saved.won;over=!!saved.over;
+   if(won||over){cells=Array.from({length:SIZE},()=>Array(SIZE).fill(null));score=0;won=false;over=false;tileId=0;spawn();spawn();startedFresh=true;}
+  }else{spawn();spawn();startedFresh=true;}
+ }catch(e){
+  // повреждённое сохранение — начинаем чистую партию
+  cells=Array.from({length:SIZE},()=>Array(SIZE).fill(null));score=0;won=false;over=false;tileId=0;spawn();spawn();startedFresh=true;
+ }
  if(startedFresh&&stats){stats.games=(stats.games||0)+1;save();}
  if(startedFresh){movesThisGame=0;boostUsedThisGame=false;endlessNotified=false;}
  updUndoUI();applyLang();applyTheme();fullRender();hideOverlay();saveBoard();if(typeof updBoostUI==='function')updBoostUI();}
@@ -801,7 +884,7 @@ function tilePx(){const layer=document.getElementById('tiles');const gap=9;const
 
 /* строим/двигаем плитки по их .x/.y */
 function fullRender(){
- document.getElementById('score').textContent=score;document.getElementById('best').textContent=best;
+ document.getElementById('score').textContent=score;document.getElementById('best').textContent=Math.max(best,score);
  const layer=document.getElementById('tiles');
  const liveIds=new Set();
  for(let y=0;y<SIZE;y++)for(let x=0;x<SIZE;x++){const c=cells[y][x];if(c)liveIds.add(c.id);}
@@ -877,17 +960,34 @@ function move(dir){
   removed.forEach(g=>{const el=tileEls[g.id];if(el){el.remove();delete tileEls[g.id];}});
   // обновить визуал слитых плиток (новый уровень) + pop
   for(let y=0;y<SIZE;y++)for(let x=0;x<SIZE;x++){const c=cells[y][x];if(c&&c.mergedThis){placeTile(c);const el=tileEls[c.id];if(el){el.classList.remove('pop');void el.offsetWidth;el.classList.add('pop');}c.mergedThis=false;}}
-  // звук/вибро слияний
+  // звук/вибро слияний с нарастающим тоном (комбо)
   let combo=mergedLevels.length;
-  if(mergedLevels.length){const mx=Math.max(...mergedLevels);sndMerge(mx);haptic(mergedFinal?'heavy':'medium');
+  if(mergedLevels.length){
+   haptic(mergedFinal?'heavy':'medium');
+   // серия слияний ход-за-ходом
+   comboStreak=(comboStreak||0)+1;
+   // каждое слияние в этом ходу звучит выше предыдущего; плюс бонус от серии ходов
+   const sorted=[...mergedLevels].sort((a,b)=>a-b);
+   sorted.forEach((lv,i)=>{
+    const step=i+Math.min(comboStreak-1,6); // выше за каждое слияние и за длину серии
+    setTimeout(()=>sndMergeStep(lv,step),i*70);
+   });
    // XP за слияния + открытие блюд в коллекции
    let newDish=false;
    mergedLevels.forEach(lv=>{xp+=lv*2;if(discoverDish(curCuisine,lv-1))newDish=true;});
    updRank();if(newDish)updBookBadge();
    checkAchievements({merged:true,combo:combo});
+   // визуальная вспышка на крупном комбо (3+ слияния за ход)
+   if(combo>=3)comboFlash(combo);
+  } else {
+   comboStreak=0; // ход без слияний обрывает серию
   }
   if(mergedFinal){document.getElementById('boardWrap').classList.add('shake');setTimeout(()=>document.getElementById('boardWrap').classList.remove('shake'),360);sndFinal();flashFinalTile();}
-  score+=gained;totalScore+=gained;document.getElementById('score').textContent=score;document.getElementById('best').textContent=best;
+  score+=gained;totalScore+=gained;document.getElementById('score').textContent=score;
+  // рекорд на табло всегда = максимум из сохранённого рекорда и текущего счёта
+  document.getElementById('best').textContent=Math.max(best,score);
+  // момент гордости: счёт впервые превысил прошлый сохранённый рекорд (только если рекорд был)
+  if(best>0&&score>best&&!recordBeaten){recordBeaten=true;toast(lang==='ru'?'🏆 Рекорд побит!':'🏆 New record!',2200);haptic('success');}
   const ns=spawn();if(ns)placeTile(ns);
   updProgress();
   save();saveBoard();checkState(mergedFinal);
@@ -899,22 +999,25 @@ function floatScore(val,pos){const layer=document.getElementById('tiles');if(!la
 let comboTimer;
 function showCombo(n){const el=document.getElementById('comboBadge');if(!el)return;el.textContent=(lang==='ru'?'Комбо ×':'Combo ×')+n;el.classList.remove('show');void el.offsetWidth;el.classList.add('show');clearTimeout(comboTimer);comboTimer=setTimeout(()=>el.classList.remove('show'),1100);}
 function flashFinalTile(){for(let y=0;y<SIZE;y++)for(let x=0;x<SIZE;x++){const c=cells[y][x];if(c&&c.val===finalIdxCur()+1){const el=tileEls[c.id];if(el){el.classList.add('finalflash');setTimeout(()=>el.classList.remove('finalflash'),900);}}}}
+function comboFlash(n){const bw=document.getElementById('boardWrap');if(!bw)return;
+ let fl=document.getElementById('comboFlash');if(!fl){fl=document.createElement('div');fl.id='comboFlash';bw.appendChild(fl);}
+ fl.className='';void fl.offsetWidth;
+ fl.classList.add(n>=5?'cf-mega':(n>=4?'cf-big':'cf-on'));
+ setTimeout(()=>{fl.className='';},650);}
 
 function canMove(){for(let y=0;y<SIZE;y++)for(let x=0;x<SIZE;x++){const c=cells[y][x];if(!c)return true;if(x<SIZE-1&&cells[y][x+1]&&cells[y][x+1].val===c.val)return true;if(y<SIZE-1&&cells[y+1][x]&&cells[y+1][x].val===c.val)return true;}return false;}
 function checkState(mf){const goal=finalIdxCur()+1;let reached=false;
  for(let y=0;y<SIZE;y++)for(let x=0;x<SIZE;x++)if(cells[y][x]&&cells[y][x].val>=goal)reached=true;
- if(reached&&!won){
+ if(reached&&!won&&!endlessMode){
   const k0=CC().key;
-  if(endlessMode){
-   // в бесконечном режиме вершина не заканчивает игру — просто отмечаем
-   if(!endlessNotified){endlessNotified=true;sndFinal();haptic('success');if(mf)flashFinalTile();toast(lang==='ru'?'Корона собрана! Продолжай — лимита нет ♾️':'Crown reached! Keep going — no limit ♾️',2400);}
-   return;
-  }
   won=true;if(score>best){best=score;document.getElementById('best').textContent=best;}if(!stats.bestPer[k0]||score>stats.bestPer[k0])stats.bestPer[k0]=score;stats.winsPer[k0]=(stats.winsPer[k0]||0)+1;
   const stars=calcStars(curCuisine,movesThisGame,boostUsedThisGame);starsEarned=stars;if(!stats.stars[k0]||stars>stats.stars[k0])stats.stars[k0]=stars;
   xp+=100;updRank();const ckey=CC().key;justEarnedItem=!items.includes(ckey);if(justEarnedItem)items.push(ckey);if(curCuisine===unlocked&&curCuisine<CUISINES.length-1)unlocked++;localStorage.removeItem('c2_board_'+CC().key);save();
   checkAchievements({wonNoBoost:!boostUsedThisGame,wonKey:k0,gameScore:score});
   confetti();sndWin();haptic('success');setTimeout(showWin,560);return;}
+ // в endless вершина не заканчивает игру — просто отмечаем (один раз)
+ if(reached&&endlessMode&&!endlessNotified){endlessNotified=true;sndFinal();haptic('success');if(mf)flashFinalTile();toast(lang==='ru'?'Корона собрана! Продолжай — лимита нет ♾️':'Crown reached! Keep going — no limit ♾️',2400);}
+ // проверка проигрыша (в т.ч. сразу после короны в endless)
  if(!canMove()){over=true;if(score>best){best=score;document.getElementById('best').textContent=best;}const k1=CC().key;
   if(endlessMode){if(!stats.endlessBest||score>stats.endlessBest)stats.endlessBest=score;}
   else{if(!stats.bestPer[k1]||score>stats.bestPer[k1])stats.bestPer[k1]=score;}
@@ -992,7 +1095,7 @@ function showWin(){const ov=document.getElementById('overlay');ov.classList.add(
   rew.innerHTML=`${fbg}<div class="ovr-label">${lang==='ru'?'Новый предмет!':'New item!'}</div><div class="ovr-em">${it.em}</div><div class="ovr-name">${it.name[lang]}</div><div class="ovr-desc">«${it.desc[lang]}»</div>`;
   justEarnedItem=false;}
  else rew.style.display='none';
- if(next){const b1=document.createElement('button');b1.className='btn';b1.textContent=`${t.goTo} ${next.name[lang]} ${next.flag}`;b1.onclick=()=>{hideOverlay();switchCuisine(curCuisine+1);};btns.appendChild(b1);}
+ if(next){const b1=document.createElement('button');b1.className='btn';b1.textContent=lang==='ru'?`Следующая кухня ${next.flag} →`:`Next: ${next.name[lang]} ${next.flag}`;b1.onclick=()=>{hideOverlay();switchCuisine(curCuisine+1);};btns.appendChild(b1);}
  const b2=document.createElement('button');b2.className='btn ghost';b2.textContent=t.playAgain;b2.onclick=()=>newGame(true);btns.appendChild(b2);buildMenu();}
 const ENCOURAGE={ru:[
  'Даже лучший шеф сжигал свой первый соус. Продолжай.',
@@ -1077,9 +1180,9 @@ function buildInventory(){const grid=document.getElementById('invGrid');if(!grid
  CUISINES.forEach((c)=>{const owned=items.includes(c.key);const it=ITEMS[c.key];
   const slot=document.createElement('div');
   if(owned){slot.className='inv-slot filled';
-   const f=it.flag;
-   slot.innerHTML=`<span class="it-flagbg" style="background:linear-gradient(135deg,${f[0]} 0%,${f[1]} 50%,${f[2]} 100%)"></span><span class="it-em">${it.em}</span>`;
+   slot.innerHTML=`<span class="it-halo"></span><span class="it-shine"></span><span class="it-spark">✦</span><span class="it-em">${it.em}</span>`;
    slot.style.setProperty('--accent',c.accent);
+   slot.style.setProperty('--accentGlow2',c.accent+'33');
    slot.onclick=()=>showItem(it,c.accent);}
   else{slot.className='inv-slot empty';slot.innerHTML='🔒';}
   grid.appendChild(slot);});}
@@ -1149,7 +1252,12 @@ function toggleBoost(){
  if(boostMode){bh.textContent=T[lang].boostArm;bh.classList.add('show');haptic('light');}
  else bh.classList.remove('show');}
 function applyBoostTo(cell){
- const maxv=finalIdxCur()+1;if(cell.val>=maxv){return;}
+ const maxv=finalIdxCur()+1;
+ // нельзя улучшать финальную и предпоследнюю карту — иначе кухня проходится одним бустом
+ if(cell.val>=maxv-1){
+  toast(lang==='ru'?'Эту карту нельзя прокачать — собери финал слиянием':'Can\'t boost this one — merge to the final dish',2200);
+  haptic('error');return;
+ }
  cell.val++;boostLeft--;boostUsedThisGame=true;boostMode=false;
  document.getElementById('boardWrap').classList.remove('boostmode');
  document.getElementById('boostBtn').classList.remove('armed');
@@ -1263,16 +1371,16 @@ function maybeOnboard(){if(!onbDone){document.getElementById('onb').classList.ad
 function maybeBoosterIntro(){
  if(localStorage.getItem('c2_seenBoosterIntro'))return;
  if(!onbDone)return; // сначала основной онбординг
- localStorage.setItem('c2_seenBoosterIntro','1');
- const pop=document.getElementById('itemPop');if(!pop)return;
- const fb=document.getElementById('ipFlag');if(fb)fb.style.display='none';
- pop.style.setProperty('--accent',CC().accent);
- document.getElementById('ipEm').textContent='🎟️';
- document.getElementById('ipName').textContent=lang==='ru'?'Твои бустеры':'Your boosters';
- document.getElementById('ipDesc').innerHTML=lang==='ru'
-  ?'↶ отменить ход · ⬆️ прокачать блюдо · 🧹 убрать мелочь. По заряду в день, больше — за уровни шефа.'
-  :'↶ undo · ⬆️ upgrade a dish · 🧹 clear small dishes. One charge a day, more from chef levels.';
- pop.classList.add('show');clearTimeout(itemPopTimer);itemPopTimer=setTimeout(()=>pop.classList.remove('show'),5000);}
+ const ru=lang==='ru';
+ const set=(id,r,e)=>{const el=document.getElementById(id);if(el)el.textContent=ru?r:e;};
+ set('biTitle',ru?'Твои помощники 🎟️':'Your helpers 🎟️');
+ set('biSub',ru?'По одному заряду в день. Больше открывается с уровнями шефа.':'One charge a day. More unlock as your chef levels up.');
+ set('biUndo','Отмена','Undo');set('biUndoD','вернуть последний ход назад','take back your last move');
+ set('biBoost','Прокачка','Boost');set('biBoostD','поднять выбранное блюдо на уровень выше','raise a chosen dish one level up');
+ set('biClear','Уборка','Clear');set('biClearD','убрать со стола мелкие блюда','sweep small dishes off the table');
+ set('biBtn','Понятно','Got it');
+ document.getElementById('boosterIntro').classList.add('show');haptic('light');}
+document.getElementById('biBtn').onclick=()=>{document.getElementById('boosterIntro').classList.remove('show');localStorage.setItem('c2_seenBoosterIntro','1');haptic('light');};
 document.getElementById('onbBtn').onclick=()=>{document.getElementById('onb').classList.remove('show');onbDone=true;localStorage.setItem('c2_onb','1');haptic('light');setTimeout(maybeBoosterIntro,600);};
 
 // ---------- Telegram Mini App ----------
@@ -1297,6 +1405,7 @@ let tgApp=null;
 })();
 
 load();buildBoard();buildMenu();updSound();updVibro();updSettingsLabels();newGame();updRank();updBoostUI();updBookBadge();checkAchievements({});
+// музыка стартует после первого касания (браузеры блокируют автоплей)
 // сплэш + онбординг
 window.addEventListener('load',()=>{setTimeout(()=>{document.getElementById('splash').classList.add('hide');setTimeout(maybeOnboard,500);},1300);});
 // если load уже прошёл
