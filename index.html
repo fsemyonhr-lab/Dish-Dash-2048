@@ -11,6 +11,9 @@
   body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg,#15161a);color:#fff;
     display:flex;flex-direction:column;align-items:center;justify-content:flex-start;min-height:100dvh;padding:max(20px,5vh) 16px 16px;
     transition:background .6s ease;user-select:none;touch-action:none}
+  body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.035;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
+    mix-blend-mode:overlay}
   .top{width:100%;max-width:480px;display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:16px}
   .top-left,.top-center,.top-right{display:flex;align-items:center;gap:7px}
   .top-center{gap:8px}
@@ -60,7 +63,7 @@
   .book-card .bc-nm{font-size:11px;font-weight:700}
   .book-card .bc-fact{font-size:9.5px;opacity:.55;line-height:1.3;font-weight:500}
   .book-card.locked .bc-nm,.book-card.locked .bc-fact{filter:blur(0)}
-  .icon-btn,.lang-btn{background:rgba(255,255,255,.08);color:#fff;border:none;padding:9px 11px;border-radius:11px;font-size:13px;font-weight:700;cursor:pointer;transition:background .15s}
+  .icon-btn,.lang-btn{background:rgba(255,255,255,.08);color:#fff;border:none;padding:9px 11px;border-radius:11px;font-size:13px;font-weight:700;cursor:pointer;transition:background .15s,transform .08s ease,box-shadow .15s;box-shadow:0 1px 2px rgba(0,0,0,.2)}
   .icon-btn{font-size:15px;padding:9px 11px}
   .cuisine-btn{display:inline-flex;align-items:center;gap:5px;padding:9px 11px}
   .chef-btn-labeled{display:inline-flex;align-items:center;gap:5px;padding:9px 11px;position:relative}
@@ -80,7 +83,7 @@
   .cuisine-bar .cuisine-btn-lbl{flex:1;text-align:left}
   .cuisine-bar .cuisine-bar-arrow{font-size:22px;opacity:.5;font-weight:400}
   .controls{display:flex;gap:6px;align-items:center}
-  .icon-btn:active,.lang-btn:active,.menu-btn:active{background:rgba(255,255,255,.16)}
+  .icon-btn:active,.lang-btn:active,.menu-btn:active{background:rgba(255,255,255,.16);transform:scale(.92) translateY(1px);box-shadow:0 0 0 rgba(0,0,0,0)}
   .icon-btn:disabled{opacity:.3;cursor:not-allowed}
   .menu-wrap{position:relative}
   .menu-btn{background:rgba(255,255,255,.08);color:#fff;border:none;padding:10px 14px;border-radius:11px;font-size:16px;cursor:pointer;transition:background .15s}
@@ -97,7 +100,9 @@
   .stats{width:100%;max-width:480px;display:flex;gap:10px;margin-bottom:16px}
   .stat{flex:1;background:rgba(255,255,255,.05);border-radius:12px;padding:10px 12px;text-align:center}
   .stat .lbl{font-size:11px;text-transform:uppercase;letter-spacing:1.2px;opacity:.45;font-weight:600}
-  .stat .val{font-size:21px;font-weight:800;letter-spacing:-.4px;margin-top:1px}
+  .stat .val{font-size:21px;font-weight:800;letter-spacing:-.4px;margin-top:1px;display:inline-block}
+  .stat .val.score-bump{animation:scoreBump .35s cubic-bezier(.3,1.5,.5,1)}
+  @keyframes scoreBump{0%{transform:scale(1)}40%{transform:scale(1.22);color:var(--accent,#e0a060)}100%{transform:scale(1)}}
   .goalbar{width:100%;max-width:480px;margin-bottom:16px;font-size:13px;opacity:.75;text-align:center;display:flex;align-items:center;justify-content:center;gap:8px;font-weight:500}
   .goalbar .gicon{font-size:26px}
   .goalbar b{color:#fff;font-weight:700;opacity:1}
@@ -111,8 +116,8 @@
   .cell{background:rgba(255,255,255,.04);border-radius:12px;position:relative;z-index:1}
   .tiles{position:absolute;inset:9px;pointer-events:none;z-index:2}
   .tile{position:absolute;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;
-    background:var(--tilebg,#2c2d34);
-    box-shadow:0 2px 8px rgba(0,0,0,.22);
+    background:linear-gradient(180deg,color-mix(in srgb,var(--tilebg,#2c2d34) 82%,#fff) 0%,var(--tilebg,#2c2d34) 42%,color-mix(in srgb,var(--tilebg,#2c2d34) 88%,#000) 100%);
+    box-shadow:0 3px 10px rgba(0,0,0,.32),inset 0 1px 0 rgba(255,255,255,.14),inset 0 -2px 4px rgba(0,0,0,.18);
     transition:left .13s cubic-bezier(.25,.6,.3,1),top .13s cubic-bezier(.25,.6,.3,1),background .15s}
   .tile .em{font-size:min(10.5vw,44px);line-height:1;position:relative;z-index:2;display:inline-block}
   .tile .nm{font-size:9.5px;margin-top:2px;font-weight:600;color:rgba(255,255,255,.55);position:relative;z-index:2;letter-spacing:.2px}
@@ -126,6 +131,11 @@
   @keyframes emWiggle{0%{transform:scale(1)}25%{transform:scale(1.35) translateY(-3px)}50%{transform:scale(1.1) translateY(0)}70%{transform:scale(1.18) translateY(-1px)}100%{transform:scale(1) translateY(0)}}
   .tile.isfinal{box-shadow:0 0 0 2px var(--accent,#e0a060),0 2px 12px rgba(0,0,0,.3)}
   #comboFlash{position:absolute;inset:0;border-radius:18px;pointer-events:none;z-index:25;opacity:0}
+  .board-wrap.breathe{animation:boardBreathe .42s cubic-bezier(.3,1.3,.5,1)}
+  .spark{position:absolute;width:6px;height:6px;border-radius:50%;pointer-events:none;z-index:6;margin:-3px 0 0 -3px;
+    box-shadow:0 0 6px 1px currentColor;animation:sparkFly .5s ease-out forwards}
+  @keyframes sparkFly{0%{transform:translate(0,0) scale(1.2);opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(0);opacity:0}}
+  @keyframes boardBreathe{0%{transform:scale(1)}40%{transform:scale(1.035)}100%{transform:scale(1)}}
   #comboFlash.cf-on{animation:cfFlash .6s ease-out;box-shadow:inset 0 0 40px 6px var(--accent,#e0a060)}
   #comboFlash.cf-big{animation:cfFlash .6s ease-out;box-shadow:inset 0 0 60px 12px var(--accent,#e0a060)}
   #comboFlash.cf-mega{animation:cfFlashMega .65s ease-out;box-shadow:inset 0 0 80px 18px var(--accent,#e0a060)}
@@ -374,20 +384,46 @@
   .rank-row .rr-xp{margin-left:auto;font-size:12px;opacity:.6;font-weight:600}
   .rank-row.cur .rr-xp{color:var(--accent,#e0a060);opacity:1}
   /* загрузочный экран */
-  #splash{position:fixed;inset:0;z-index:200;background:#15161a;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;transition:opacity .5s ease}
+  #splash{position:fixed;inset:0;z-index:200;background:radial-gradient(circle at 50% 42%,#1e1f28,#121319 70%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;transition:opacity .5s ease}
   #splash.hide{opacity:0;pointer-events:none}
-  #splash .logo{font-size:78px;animation:logoP 1.6s ease-in-out infinite}
+  /* сцена с тарелкой и парящей едой */
+  #splash .splash-stage{position:relative;width:200px;height:200px;display:flex;align-items:center;justify-content:center;margin-bottom:4px}
+  #splash .logo{font-size:74px;position:relative;z-index:3;animation:logoIn .8s cubic-bezier(.2,1.5,.4,1) both, logoP 2s ease-in-out .8s infinite}
+  @keyframes logoIn{0%{transform:scale(0) rotate(-180deg);opacity:0}100%{transform:scale(1) rotate(0);opacity:1}}
   @keyframes logoP{0%,100%{transform:scale(1) rotate(-3deg)}50%{transform:scale(1.08) rotate(3deg)}}
   #splash .logo-em{display:inline-block}
-  #splash h1{font-size:27px;font-weight:900;letter-spacing:-.5px;background:linear-gradient(120deg,#e0a060,#f0b840,#7ec46a,#e878a8);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;background-size:200% auto;animation:shimmer 3s linear infinite}
+  /* пульсирующее кольцо за тарелкой */
+  #splash .logo-ring{position:absolute;left:50%;top:50%;width:120px;height:120px;transform:translate(-50%,-50%);border-radius:50%;
+    background:radial-gradient(circle,rgba(224,160,96,.25),transparent 68%);animation:ringPulse 2s ease-in-out infinite}
+  @keyframes ringPulse{0%,100%{transform:translate(-50%,-50%) scale(.85);opacity:.5}50%{transform:translate(-50%,-50%) scale(1.15);opacity:.9}}
+  /* парящие блюда вокруг */
+  #splash .float-food{position:absolute;font-size:30px;left:50%;top:50%;opacity:0;
+    animation:foodOrbit 3s ease-in-out infinite}
+  #splash .float-food.f1{animation-delay:.0s;--ang:0deg}
+  #splash .float-food.f2{animation-delay:.5s;--ang:60deg}
+  #splash .float-food.f3{animation-delay:1s;--ang:120deg}
+  #splash .float-food.f4{animation-delay:1.5s;--ang:180deg}
+  #splash .float-food.f5{animation-delay:2s;--ang:240deg}
+  #splash .float-food.f6{animation-delay:2.5s;--ang:300deg}
+  @keyframes foodOrbit{
+    0%{opacity:0;transform:translate(-50%,-50%) rotate(var(--ang)) translateY(-30px) rotate(calc(-1*var(--ang))) scale(.4)}
+    25%{opacity:1;transform:translate(-50%,-50%) rotate(var(--ang)) translateY(-92px) rotate(calc(-1*var(--ang))) scale(1)}
+    75%{opacity:1;transform:translate(-50%,-50%) rotate(calc(var(--ang) + 40deg)) translateY(-92px) rotate(calc(-1*var(--ang) - 40deg)) scale(1)}
+    100%{opacity:0;transform:translate(-50%,-50%) rotate(calc(var(--ang) + 60deg)) translateY(-30px) rotate(calc(-1*var(--ang) - 60deg)) scale(.4)}
+  }
+  #splash h1{font-size:30px;font-weight:900;letter-spacing:-.5px;background:linear-gradient(120deg,#e0a060,#f0b840,#7ec46a,#e878a8);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;background-size:200% auto;animation:shimmer 3s linear infinite, h1In .6s ease .5s both}
+  @keyframes h1In{0%{opacity:0;transform:translateY(12px)}100%{opacity:1;transform:translateY(0)}}
   @keyframes shimmer{to{background-position:200% center}}
-  #splash .sub{font-size:13px;opacity:.5;font-weight:600;letter-spacing:.5px}
-  #splash .bar{width:140px;height:4px;background:rgba(255,255,255,.1);border-radius:2px;overflow:hidden;margin-top:6px}
-  #splash .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#e0a060,#f0b840);border-radius:2px;animation:fill 1.1s ease forwards}
-  @keyframes fill{to{width:100%}}
+  #splash .sub{font-size:14px;opacity:0;font-weight:800;letter-spacing:6px;animation:subIn .5s ease .9s both}
+  @keyframes subIn{to{opacity:.55}}
+  #splash .bar{width:150px;height:4px;background:rgba(255,255,255,.1);border-radius:2px;overflow:hidden;margin-top:10px}
+  #splash .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#e0a060,#f0b840,#7ec46a);border-radius:2px;animation:fill 2.4s cubic-bezier(.6,.1,.3,1) forwards}
+  @keyframes fill{0%{width:0}100%{width:100%}}
   /* онбординг */
   #onb{position:absolute;inset:0;z-index:40;background:rgba(10,11,14,.82);backdrop-filter:blur(3px);border-radius:18px;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px}
   #onb.show{display:flex;animation:ovIn .3s ease}
+  #onb .onb-head{font-size:19px;font-weight:900;margin-bottom:18px;text-align:center}
+  #onb .onb-goal{font-size:13px;opacity:.62;line-height:1.4;max-width:250px;margin:6px 0 18px;font-weight:600}
   /* экран-интро бустеров */
   #boosterIntro{position:fixed;inset:0;z-index:160;background:rgba(8,9,12,.82);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;padding:24px}
   #boosterIntro.show{display:flex;animation:ovIn .3s ease}
@@ -424,7 +460,15 @@
 </head>
 <body>
 <div id="splash">
-  <div class="logo"><span class="logo-em">🍽️</span></div>
+  <div class="splash-stage">
+    <span class="float-food f1">🍕</span>
+    <span class="float-food f2">🍣</span>
+    <span class="float-food f3">🥐</span>
+    <span class="float-food f4">🌮</span>
+    <span class="float-food f5">🥟</span>
+    <span class="float-food f6">🍜</span>
+    <div class="logo"><span class="logo-ring"></span><span class="logo-em">🍽️</span></div>
+  </div>
   <h1>Dish Dash</h1>
   <div class="sub">2048</div>
   <div class="bar"><i></i></div>
@@ -433,7 +477,7 @@
 <div class="top">
   <div class="top-left">
     <div class="boost-wrap"><button class="icon-btn boost-ic" id="undoBtn" title="Отменить последний ход">↩️</button><span class="cnt-badge" id="undoBadge">1</span><span class="boost-lbl" id="undoLbl">Отмена</span></div>
-    <div class="boost-wrap"><button class="icon-btn boost-ic" id="boostBtn" title="Поднять блюдо на уровень выше">⭐</button><span class="cnt-badge" id="boostBadge">1</span><span class="boost-lbl" id="boostLbl">Прокачка</span></div>
+    <div class="boost-wrap"><button class="icon-btn boost-ic" id="boostBtn" title="Поднять блюдо на уровень выше">⭐</button><span class="cnt-badge" id="boostBadge">1</span><span class="boost-lbl" id="boostLbl">Улучшить</span></div>
     <div class="boost-wrap"><button class="icon-btn boost-ic" id="clearBtn" title="Убрать мелкие блюда со стола">🧽</button><span class="cnt-badge" id="clearBadge">1</span><span class="boost-lbl" id="clearLbl">Уборка</span></div>
   </div>
   <div class="top-right">
@@ -462,6 +506,7 @@
   <div class="tiles" id="tiles"></div>
   <div class="overlay" id="overlay"><div class="bigicon" id="ovIcon"></div><h2 id="ovTitle"></h2><p id="ovText"></p><div id="ovBtns"></div></div>
   <div id="onb">
+    <div class="onb-head" id="onbHead">Добро пожаловать, шеф! 👨‍🍳</div>
     <div class="onb-demo">
       <div class="onb-cell"></div><div class="onb-cell"></div><div class="onb-cell"></div>
       <div class="onb-tile t1">🥟</div>
@@ -469,8 +514,9 @@
       <div class="onb-tile t3">🍲</div>
     </div>
     <div class="hand">👆</div>
-    <p id="onbText">Свайпай, чтобы двигать блюда. Одинаковые соединяются!</p>
-    <button class="btn" id="onbBtn">Понятно</button>
+    <p id="onbText">Свайпай, чтобы двигать блюда. Одинаковые соединяются в новое!</p>
+    <p id="onbGoal" class="onb-goal">Собирай цепочку до финального блюда и покоряй кухни мира 🌍</p>
+    <button class="btn" id="onbBtn">Начать готовить</button>
   </div>
   <div class="boost-hint" id="boostHint"></div>
 </div>
@@ -480,7 +526,7 @@
     <div class="bi-sub" id="biSub">По одному заряду в день. Больше открывается с уровнями шефа.</div>
     <div class="bi-list">
       <div class="bi-row"><span class="bi-ic">↩️</span><div class="bi-txt"><b id="biUndo">Отмена</b><span id="biUndoD">вернуть последний ход назад</span></div></div>
-      <div class="bi-row"><span class="bi-ic">⭐</span><div class="bi-txt"><b id="biBoost">Прокачка</b><span id="biBoostD">поднять выбранное блюдо на уровень выше</span></div></div>
+      <div class="bi-row"><span class="bi-ic">⭐</span><div class="bi-txt"><b id="biBoost">Улучшить</b><span id="biBoostD">поднять выбранное блюдо на уровень выше</span></div></div>
       <div class="bi-row"><span class="bi-ic">🧽</span><div class="bi-txt"><b id="biClear">Уборка</b><span id="biClearD">убрать со стола мелкие блюда</span></div></div>
     </div>
     <button class="btn" id="biBtn">Понятно</button>
@@ -568,8 +614,8 @@
 </div>
 <script>
 const T={
- ru:{score:'Счёт',best:'Рекорд',goal:'Цель — собрать:',hint:'Свайпай пальцем или стрелками',win:'Кухня покорена!',collected:'Ты приготовил',unlocked:'Открыта',cuisine:'кухня',last:'Последняя кухня покорена — ты мастер-шеф!',goTo:'Перейти к',playAgain:'Играть ещё',lose:'Поле забито',loseText:'Ходов больше нет. Попробуй ещё раз!',retry:'Заново',onb:'Свайпай, чтобы двигать блюда. Одинаковые соединяются!',onbBtn:'Понятно',sub:'Кухни Мира',noUndo:'Отмена будет доступна завтра',book:'Кулинарная книга',noBoost:'Бустер будет доступен завтра',boostArm:'Тапни блюдо, чтобы прокачать',boostDone:'Блюдо прокачано!',locked:'Не открыто',noClear:'Уборка будет доступна завтра',clearDone:'Стол убран!',clearEmpty:'Нет блюд для уборки'},
- en:{score:'Score',best:'Best',goal:'Goal — make:',hint:'Swipe or use arrow keys',win:'Cuisine mastered!',collected:'You cooked',unlocked:'Unlocked',cuisine:'cuisine',last:"Last cuisine mastered — you're a master chef!",goTo:'Go to',playAgain:'Play again',lose:'Board is full',loseText:'No moves left. Try again!',retry:'Restart',onb:'Swipe to move dishes. Matching ones merge!',onbBtn:'Got it',sub:'World Cuisines',noUndo:'Undo available again tomorrow',book:'Cookbook',noBoost:'Boost available again tomorrow',boostArm:'Tap a dish to upgrade it',boostDone:'Dish upgraded!',locked:'Not discovered',noClear:'Clear available again tomorrow',clearDone:'Table cleared!',clearEmpty:'No dishes to clear'}
+ ru:{score:'Счёт',best:'Рекорд',goal:'Цель — собрать:',hint:'Свайпай пальцем или стрелками',win:'Кухня покорена!',collected:'Ты приготовил',unlocked:'Открыта',cuisine:'кухня',last:'Последняя кухня покорена — ты мастер-шеф!',goTo:'Перейти к',playAgain:'Играть ещё',lose:'Поле забито',loseText:'Ходов больше нет. Попробуй ещё раз!',retry:'Заново',onb:'Свайпай, чтобы двигать блюда. Одинаковые соединяются в новое!',onbBtn:'Начать готовить',sub:'Кухни Мира',noUndo:'Отмена будет доступна завтра',book:'Кулинарная книга',noBoost:'Бустер будет доступен завтра',boostArm:'Тапни блюдо, чтобы прокачать',boostDone:'Блюдо прокачано!',locked:'Не открыто',noClear:'Уборка будет доступна завтра',clearDone:'Стол убран!',clearEmpty:'Нет блюд для уборки'},
+ en:{score:'Score',best:'Best',goal:'Goal — make:',hint:'Swipe or use arrow keys',win:'Cuisine mastered!',collected:'You cooked',unlocked:'Unlocked',cuisine:'cuisine',last:"Last cuisine mastered — you're a master chef!",goTo:'Go to',playAgain:'Play again',lose:'Board is full',loseText:'No moves left. Try again!',retry:'Restart',onb:'Swipe to move dishes. Matching ones merge into a new one!',onbBtn:'Start cooking',sub:'World Cuisines',noUndo:'Undo available again tomorrow',book:'Cookbook',noBoost:'Boost available again tomorrow',boostArm:'Tap a dish to upgrade it',boostDone:'Dish upgraded!',locked:'Not discovered',noClear:'Clear available again tomorrow',clearDone:'Table cleared!',clearEmpty:'No dishes to clear'}
 };
 const CUISINES=[
  {key:'ru',name:{ru:'Русская',en:'Russian'},flag:'\uD83C\uDDF7\uD83C\uDDFA',accent:'#e0a060',bg:'#191510',boardbg:'#241d15',
@@ -847,12 +893,17 @@ function showAchToast(a){const el=document.getElementById('achToast');if(!el)ret
  el.classList.add('show');sndReward();haptic('success');clearTimeout(achToastTimer);achToastTimer=setTimeout(()=>el.classList.remove('show'),3200);}
 function applyLang(){const t=T[lang];document.getElementById('lblScore').textContent=t.score;document.getElementById('lblBest').textContent=t.best;document.documentElement.lang=lang;
  const ot=document.getElementById('onbText');if(ot)ot.textContent=t.onb;const ob=document.getElementById('onbBtn');if(ob)ob.textContent=t.onbBtn;
+ const oh=document.getElementById('onbHead');if(oh)oh.textContent=lang==='ru'?'Добро пожаловать, шеф! 👨‍🍳':'Welcome, chef! 👨‍🍳';
+ const og=document.getElementById('onbGoal');if(og)og.textContent=lang==='ru'?'Собирай цепочку до финального блюда и покоряй кухни мира 🌍':'Build the chain up to the final dish and conquer world cuisines 🌍';
  const ru=lang==='ru';
  const setTxt=(id,r,e)=>{const el=document.getElementById(id);if(el)el.textContent=ru?r:e;};
- setTxt('undoLbl','Отмена','Undo');setTxt('boostLbl','Прокачка','Boost');setTxt('clearLbl','Уборка','Clear');setTxt('restartLbl','Заново','Restart');
+ setTxt('undoLbl','Отмена','Undo');setTxt('boostLbl','Улучшить','Boost');setTxt('clearLbl','Уборка','Clear');setTxt('restartLbl','Заново','Restart');
  if(typeof updRank==='function')updRank();}
 function applyTheme(){const c=CC(),fi=finalIdxCur(),s=document.body.style;
  s.setProperty('--bg',c.bg);s.setProperty('--boardbg',c.boardbg);s.setProperty('--accent',c.accent);s.setProperty('--accentGlow',c.accent+'22');
+ // мягкое свечение фона в цвет кухни (если не endless — у него своя тема)
+ if(!endlessMode){s.background=`radial-gradient(circle at 50% 18%, ${c.accent}1a 0%, transparent 42%), ${c.bg}`;}
+ else{s.background='';}
  document.body.classList.toggle('endless-theme',!!endlessMode);
  const tf=document.getElementById('tabFlag');if(tf)tf.textContent=c.flag;const tl=document.getElementById('tabLabel');if(tl)tl.textContent=lang==='ru'?'КУХНИ':'CUISINES';
  const cbl2=document.getElementById('chefBtnLbl');if(cbl2)cbl2.textContent=lang==='ru'?'Профиль':'Profile';
@@ -959,7 +1010,7 @@ function move(dir){
  setTimeout(()=>{
   removed.forEach(g=>{const el=tileEls[g.id];if(el){el.remove();delete tileEls[g.id];}});
   // обновить визуал слитых плиток (новый уровень) + pop
-  for(let y=0;y<SIZE;y++)for(let x=0;x<SIZE;x++){const c=cells[y][x];if(c&&c.mergedThis){placeTile(c);const el=tileEls[c.id];if(el){el.classList.remove('pop');void el.offsetWidth;el.classList.add('pop');}c.mergedThis=false;}}
+  for(let y=0;y<SIZE;y++)for(let x=0;x<SIZE;x++){const c=cells[y][x];if(c&&c.mergedThis){placeTile(c);const el=tileEls[c.id];if(el){el.classList.remove('pop');void el.offsetWidth;el.classList.add('pop');const{gap,size}=tilePx();const cx=c.x*(size+gap)+size/2;const cy=c.y*(size+gap)+size/2;spawnParticles(cx,cy,CC().accent,6);}c.mergedThis=false;}}
   // звук/вибро слияний с нарастающим тоном (комбо)
   let combo=mergedLevels.length;
   if(mergedLevels.length){
@@ -983,7 +1034,7 @@ function move(dir){
    comboStreak=0; // ход без слияний обрывает серию
   }
   if(mergedFinal){document.getElementById('boardWrap').classList.add('shake');setTimeout(()=>document.getElementById('boardWrap').classList.remove('shake'),360);sndFinal();flashFinalTile();}
-  score+=gained;totalScore+=gained;document.getElementById('score').textContent=score;
+  score+=gained;totalScore+=gained;animateScore(score);
   // рекорд на табло всегда = максимум из сохранённого рекорда и текущего счёта
   document.getElementById('best').textContent=Math.max(best,score);
   // момент гордости: счёт впервые превысил прошлый сохранённый рекорд (только если рекорд был)
@@ -999,10 +1050,26 @@ function floatScore(val,pos){const layer=document.getElementById('tiles');if(!la
 let comboTimer;
 function showCombo(n){const el=document.getElementById('comboBadge');if(!el)return;el.textContent=(lang==='ru'?'Комбо ×':'Combo ×')+n;el.classList.remove('show');void el.offsetWidth;el.classList.add('show');clearTimeout(comboTimer);comboTimer=setTimeout(()=>el.classList.remove('show'),1100);}
 function flashFinalTile(){for(let y=0;y<SIZE;y++)for(let x=0;x<SIZE;x++){const c=cells[y][x];if(c&&c.val===finalIdxCur()+1){const el=tileEls[c.id];if(el){el.classList.add('finalflash');setTimeout(()=>el.classList.remove('finalflash'),900);}}}}
+function spawnParticles(cx,cy,color,count){const layer=document.getElementById('tiles');if(!layer)return;
+ for(let i=0;i<count;i++){const sp=document.createElement('span');sp.className='spark';
+  const ang=(Math.PI*2*i/count)+Math.random()*0.6;const dist=14+Math.random()*22;
+  sp.style.left=cx+'px';sp.style.top=cy+'px';sp.style.background=color;
+  sp.style.setProperty('--dx',Math.cos(ang)*dist+'px');sp.style.setProperty('--dy',Math.sin(ang)*dist+'px');
+  layer.appendChild(sp);setTimeout(()=>sp.remove(),520);}}
+let scoreAnimRAF=null;
+function animateScore(target){const el=document.getElementById('score');if(!el)return;
+ let from=parseInt(el.textContent.replace(/\D/g,''))||0;
+ if(scoreAnimRAF)cancelAnimationFrame(scoreAnimRAF);
+ const start=performance.now(),dur=350;
+ el.classList.remove('score-bump');void el.offsetWidth;el.classList.add('score-bump');
+ const step=(now)=>{const t=Math.min(1,(now-start)/dur);const v=Math.round(from+(target-from)*(1-Math.pow(1-t,3)));el.textContent=v;
+  if(t<1)scoreAnimRAF=requestAnimationFrame(step);else el.textContent=target;};
+ scoreAnimRAF=requestAnimationFrame(step);}
 function comboFlash(n){const bw=document.getElementById('boardWrap');if(!bw)return;
  let fl=document.getElementById('comboFlash');if(!fl){fl=document.createElement('div');fl.id='comboFlash';bw.appendChild(fl);}
  fl.className='';void fl.offsetWidth;
  fl.classList.add(n>=5?'cf-mega':(n>=4?'cf-big':'cf-on'));
+ if(n>=4){bw.classList.remove('breathe');void bw.offsetWidth;bw.classList.add('breathe');setTimeout(()=>bw.classList.remove('breathe'),440);}
  setTimeout(()=>{fl.className='';},650);}
 
 function canMove(){for(let y=0;y<SIZE;y++)for(let x=0;x<SIZE;x++){const c=cells[y][x];if(!c)return true;if(x<SIZE-1&&cells[y][x+1]&&cells[y][x+1].val===c.val)return true;if(y<SIZE-1&&cells[y+1][x]&&cells[y+1][x].val===c.val)return true;}return false;}
@@ -1144,6 +1211,7 @@ function updRank(){const{rank,idx}=rankFor(xp);const nx=nextRank(idx);
  let pct=100;if(nx){const span=nx.xp-rank.xp;pct=Math.round(((xp-rank.xp)/span)*100);}
  // экран профиля (если открыт/существует)
  const be=document.getElementById('chefBigEm');if(be){be.textContent=rank.em;
+  const ring=document.querySelector('.chef-avatar-ring');if(ring){const g=8+idx*7;ring.style.setProperty('--accentSh',rank&&CC()?CC().accent+'aa':'#e0a060aa');ring.style.boxShadow=`0 0 0 3px var(--accent,#e0a060),0 0 ${g}px var(--accent,#e0a060)${idx>=3?'cc':'88'},inset 0 0 18px rgba(0,0,0,.3)`;}
   let bdg=document.getElementById('chefBadge');if(!bdg){bdg=document.createElement('span');bdg.id='chefBadge';bdg.className='chef-badge';be.parentNode.appendChild(bdg);}
   bdg.textContent=rank.badge||'';bdg.style.display=rank.badge?'flex':'none';
   document.getElementById('chefBigRank').textContent=rank[lang];
@@ -1376,7 +1444,7 @@ function maybeBoosterIntro(){
  set('biTitle',ru?'Твои помощники 🎟️':'Your helpers 🎟️');
  set('biSub',ru?'По одному заряду в день. Больше открывается с уровнями шефа.':'One charge a day. More unlock as your chef levels up.');
  set('biUndo','Отмена','Undo');set('biUndoD','вернуть последний ход назад','take back your last move');
- set('biBoost','Прокачка','Boost');set('biBoostD','поднять выбранное блюдо на уровень выше','raise a chosen dish one level up');
+ set('biBoost','Улучшить','Boost');set('biBoostD','поднять выбранное блюдо на уровень выше','raise a chosen dish one level up');
  set('biClear','Уборка','Clear');set('biClearD','убрать со стола мелкие блюда','sweep small dishes off the table');
  set('biBtn','Понятно','Got it');
  document.getElementById('boosterIntro').classList.add('show');haptic('light');}
@@ -1407,9 +1475,9 @@ let tgApp=null;
 load();buildBoard();buildMenu();updSound();updVibro();updSettingsLabels();newGame();updRank();updBoostUI();updBookBadge();checkAchievements({});
 // музыка стартует после первого касания (браузеры блокируют автоплей)
 // сплэш + онбординг
-window.addEventListener('load',()=>{setTimeout(()=>{document.getElementById('splash').classList.add('hide');setTimeout(maybeOnboard,500);},1300);});
+window.addEventListener('load',()=>{setTimeout(()=>{document.getElementById('splash').classList.add('hide');setTimeout(maybeOnboard,500);},2600);});
 // если load уже прошёл
-if(document.readyState==='complete'){setTimeout(()=>{document.getElementById('splash').classList.add('hide');setTimeout(maybeOnboard,500);},1300);}
+if(document.readyState==='complete'){setTimeout(()=>{document.getElementById('splash').classList.add('hide');setTimeout(maybeOnboard,500);},2600);}
 </script>
 </body>
 </html>
