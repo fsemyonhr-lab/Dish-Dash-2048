@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Dish Dash 2048</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%;overscroll-behavior:none}
+  body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg,#15161a);color:#fff;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100dvh;padding:16px;
+    transition:background .6s ease;user-select:none;touch-action:none}
+  .top{width:100%;max-width:480px;display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:16px}
+  .top-left,.top-center,.top-right{display:flex;align-items:center;gap:7px}
+  .top-center{gap:8px}
+  .top-right{justify-content:flex-end}
+  .title{font-size:20px;font-weight:800;letter-spacing:-.4px;display:flex;align-items:center;gap:9px}
+  .flag{font-size:24px}
+  .controls{display:flex;gap:8px;align-items:center}
+  .vibicon-off{display:none}.vibro-off .vibicon-on{display:none}.vibro-off .vibicon-off{display:inline}
+  .progwrap{width:100%;max-width:480px;margin:-6px 0 16px;display:flex;flex-direction:column;gap:4px}
+  .progtrack{height:7px;background:rgba(255,255,255,.07);border-radius:4px;overflow:hidden}
+  .progfill{height:100%;width:0;background:linear-gradient(90deg,var(--accent,#e0a060),var(--accent,#e0a060));border-radius:4px;transition:width .35s cubic-bezier(.3,.8,.4,1)}
+  .proglabel{display:flex;align-items:center;justify-content:space-between;font-size:11px;opacity:.55;font-weight:600;padding:0 1px}
+  .proglabel .progcur{color:var(--accent,#e0a060);opacity:1}
+  /* панель шефа */
+  /* бейджи на иконках */
+  .book-badge{position:absolute;top:-4px;right:-4px;width:9px;height:9px;border-radius:50%;background:#f05a5a;box-shadow:0 0 0 2px #15161a}
+  #bookBtn{position:relative}
+  /* кнопка бустера */
+  .boost-btn{position:absolute;right:10px;bottom:10px;z-index:15;width:50px;height:50px;border-radius:50%;border:none;cursor:pointer;
+    background:linear-gradient(145deg,var(--accent,#e0a060),#f0c060);color:#fff;font-size:22px;
+    box-shadow:0 4px 16px rgba(0,0,0,.4),0 0 0 4px rgba(0,0,0,.15);transition:transform .15s,opacity .2s;display:flex;align-items:center;justify-content:center}
+  .boost-btn:active{transform:scale(.9)}
+  .boost-btn:disabled{opacity:.35;filter:grayscale(.6)}
+  .boost-btn.armed{animation:boostPulse 1s ease-in-out infinite}
+  @keyframes boostPulse{0%,100%{box-shadow:0 4px 16px rgba(0,0,0,.4),0 0 0 4px var(--accentGlow,#e0a06044)}50%{box-shadow:0 4px 22px var(--accent,#e0a060),0 0 0 8px var(--accentGlow,#e0a06044)}}
+  .boost-badge{position:absolute;top:-3px;right:-3px;background:#15161a;color:var(--accent,#e0a060);font-size:11px;font-weight:800;min-width:17px;height:17px;border-radius:9px;display:flex;align-items:center;justify-content:center;border:2px solid var(--accent,#e0a060)}
+  .boost-hint{position:absolute;left:50%;bottom:70px;transform:translateX(-50%);z-index:16;background:rgba(0,0,0,.8);color:#fff;font-size:13px;font-weight:600;padding:8px 14px;border-radius:10px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .2s}
+  .boost-hint.show{opacity:1}
+  .board-wrap.boostmode .tile{cursor:pointer}
+  .board-wrap.boostmode .tiles{pointer-events:auto}
+  .board-wrap.boostmode .tile:not(.isfinal){animation:tileWiggle .5s ease-in-out infinite}
+  @keyframes tileWiggle{0%,100%{filter:brightness(1)}50%{filter:brightness(1.25)}}
+  /* экран коллекции */
+  #bookScreen{position:fixed;inset:0;z-index:120;background:var(--bg,#15161a);display:none;flex-direction:column;padding:16px;overflow-y:auto}
+  #bookScreen.show{display:flex;animation:ovIn .3s ease}
+  .book-head{display:flex;align-items:center;gap:12px;max-width:480px;width:100%;margin:0 auto 16px;position:relative}
+  .book-close{background:rgba(255,255,255,.08);border:none;color:#fff;width:38px;height:38px;border-radius:11px;font-size:16px;cursor:pointer;flex-shrink:0}
+  .book-head h2{font-size:20px;font-weight:800;flex:1}
+  .book-prog{font-size:13px;opacity:.6;font-weight:700;color:var(--accent,#e0a060)}
+  .book-body{max-width:480px;width:100%;margin:0 auto;display:flex;flex-direction:column;gap:20px;padding-bottom:20px}
+  .book-cuisine-title{font-size:15px;font-weight:700;display:flex;align-items:center;gap:8px;margin-bottom:10px;opacity:.85}
+  .book-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .book-card{background:rgba(255,255,255,.05);border-radius:13px;padding:12px 8px;text-align:center;min-height:96px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;transition:transform .15s}
+  .book-card.locked{opacity:.4}
+  .book-card .bc-em{font-size:34px;line-height:1}
+  .book-card.locked .bc-em{filter:grayscale(1) brightness(.7)}
+  .book-card .bc-nm{font-size:11px;font-weight:700}
+  .book-card .bc-fact{font-size:9.5px;opacity:.55;line-height:1.3;font-weight:500}
+  .book-card.locked .bc-nm,.book-card.locked .bc-fact{filter:blur(0)}
+  .icon-btn,.lang-btn{background:rgba(255,255,255,.08);color:#fff;border:none;padding:9px 11px;border-radius:11px;font-size:13px;font-weight:700;cursor:pointer;transition:background .15s}
+  .icon-btn{font-size:15px;padding:9px 11px}
+  .controls{display:flex;gap:6px;align-items:center}
+  .icon-btn:active,.lang-btn:active,.menu-btn:active{background:rgba(255,255,255,.16)}
+  .icon-btn:disabled{opacity:.3;cursor:not-allowed}
+  .menu-wrap{position:relative}
+  .menu-btn{background:rgba(255,255,255,.08);color:#fff;border:none;padding:10px 14px;border-radius:11px;font-size:16px;cursor:pointer;transition:background .15s}
+  .menu-list{position:absolute;right:0;top:48px;background:#1f2026;border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:6px;width:252px;z-index:50;display:none;box-shadow:0 16px 44px rgba(0,0,0,.55)}
+  .menu-list.open{display:block;animation:menuIn .18s ease}
+  @keyframes menuIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+  .menu-item{display:flex;align-items:center;gap:11px;padding:11px 12px;border-radius:10px;cursor:pointer;font-size:15px;font-weight:500;transition:background .12s}
+  .menu-item:hover{background:rgba(255,255,255,.06)}
+  .menu-item.locked{opacity:.38;cursor:not-allowed}
+  .menu-item.active{background:rgba(255,255,255,.09)}
+  .menu-item.active span:nth-child(2){color:var(--accent,#e0a060);font-weight:700}
+  .menu-item .em{font-size:20px;width:24px;text-align:center}
+  .menu-item .gi{margin-left:auto;font-size:21px}
+  .stats{width:100%;max-width:480px;display:flex;gap:10px;margin-bottom:16px}
+  .stat{flex:1;background:rgba(255,255,255,.05);border-radius:12px;padding:10px 12px;text-align:center}
+  .stat .lbl{font-size:11px;text-transform:uppercase;letter-spacing:1.2px;opacity:.45;font-weight:600}
+  .stat .val{font-size:21px;font-weight:800;letter-spacing:-.4px;margin-top:1px}
+  .goalbar{width:100%;max-width:480px;margin-bottom:16px;font-size:13px;opacity:.75;text-align:center;display:flex;align-items:center;justify-content:center;gap:8px;font-weight:500}
+  .goalbar .gicon{font-size:26px}
+  .goalbar b{color:#fff;font-weight:700;opacity:1}
+  .board-wrap{position:relative;width:100%;max-width:480px;aspect-ratio:1}
+  .board-wrap.gameover-shake{animation:goShake .5s ease}
+  @keyframes goShake{0%{transform:translateX(0)}15%{transform:translateX(-7px) rotate(-.5deg)}30%{transform:translateX(6px) rotate(.5deg)}45%{transform:translateX(-5px)}60%{transform:translateX(4px)}75%{transform:translateX(-2px)}100%{transform:translateX(0);filter:saturate(.5) brightness(.8)}}
+  .board-wrap.shake{animation:shake .35s ease}
+  @keyframes shake{0%,100%{transform:translate(0,0)}20%{transform:translate(-4px,2px)}40%{transform:translate(4px,-2px)}60%{transform:translate(-3px,-2px)}80%{transform:translate(3px,2px)}}
+  .board{position:absolute;inset:0;background:var(--boardbg,#1f2026);border-radius:18px;padding:9px;display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(4,1fr);gap:9px;overflow:hidden}
+  .board::before{content:'';position:absolute;inset:0;background:radial-gradient(120% 80% at 50% -10%,var(--accentGlow,#e0a06022),transparent 60%);pointer-events:none;transition:background .6s ease}
+  .cell{background:rgba(255,255,255,.04);border-radius:12px;position:relative;z-index:1}
+  .tiles{position:absolute;inset:9px;pointer-events:none;z-index:2}
+  .tile{position:absolute;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    background:var(--tilebg,#2c2d34);
+    box-shadow:0 2px 8px rgba(0,0,0,.22);
+    transition:left .13s cubic-bezier(.25,.6,.3,1),top .13s cubic-bezier(.25,.6,.3,1),background .15s}
+  .tile .em{font-size:min(10.5vw,44px);line-height:1;position:relative;z-index:2}
+  .tile .nm{font-size:9.5px;margin-top:2px;font-weight:600;color:rgba(255,255,255,.55);position:relative;z-index:2;letter-spacing:.2px}
+  .tile.spawn{animation:spawn .2s cubic-bezier(.3,1.4,.5,1) .04s both}
+  @keyframes spawn{0%{transform:scale(0)}100%{transform:scale(1)}}
+  .tile.clearing{animation:clearOut .3s ease forwards}
+  @keyframes clearOut{0%{transform:scale(1);opacity:1}40%{transform:scale(1.15);opacity:1}100%{transform:scale(0);opacity:0}}
+  .tile.pop{animation:pop .2s ease}
+  @keyframes pop{0%{transform:scale(1)}45%{transform:scale(1.18)}100%{transform:scale(1)}}
+  .tile.isfinal{box-shadow:0 0 0 2px var(--accent,#e0a060),0 2px 12px rgba(0,0,0,.3)}
+  .overlay{position:absolute;inset:0;background:rgba(10,11,14,.92);backdrop-filter:blur(8px);border-radius:18px;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:22px 24px;z-index:30;overflow-y:auto}
+  .overlay.show{display:flex;animation:ovIn .3s ease}
+  @keyframes ovIn{from{opacity:0}to{opacity:1}}
+  .overlay .bigicon{font-size:54px;margin-bottom:10px;flex-shrink:0;animation:popbig .4s cubic-bezier(.3,1.5,.5,1)}
+  @keyframes popbig{0%{transform:scale(0)}100%{transform:scale(1)}}
+  .overlay h2{font-size:21px;margin-bottom:7px;font-weight:800;flex-shrink:0}
+  .overlay p{opacity:.7;margin-bottom:16px;font-size:14px;line-height:1.4;max-width:290px;flex-shrink:0}
+  .btn{background:var(--accent,#e0a060);color:#15161a;border:none;padding:13px 22px;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;margin:5px;transition:transform .15s}
+  .btn:active{transform:scale(.95)}
+  .btn.ghost{background:rgba(255,255,255,.1);color:#fff}
+  .hint{position:fixed;left:50%;transform:translateX(-50%);bottom:48px;z-index:66;font-size:13px;font-weight:600;text-align:center;background:rgba(0,0,0,.8);color:#fff;padding:8px 16px;border-radius:10px;opacity:0;pointer-events:none;transition:opacity .2s;white-space:nowrap}
+  .hint.show{opacity:1}
+  .float-score{position:absolute;z-index:20;transform:translate(-50%,-50%);font-size:18px;font-weight:900;color:var(--accent,#e0a060);text-shadow:0 2px 6px rgba(0,0,0,.6);pointer-events:none;animation:floatUp .9s ease-out forwards}
+  @keyframes floatUp{0%{opacity:0;transform:translate(-50%,-50%) scale(.6)}20%{opacity:1;transform:translate(-50%,-90%) scale(1.1)}100%{opacity:0;transform:translate(-50%,-180%) scale(1)}}
+  #comboBadge{position:fixed;left:50%;top:30%;transform:translateX(-50%) scale(.5);z-index:55;font-size:26px;font-weight:900;color:#fff;text-shadow:0 0 14px var(--accent,#e0a060),0 3px 8px rgba(0,0,0,.5);opacity:0;pointer-events:none;letter-spacing:.5px}
+  #comboBadge.show{animation:comboPop 1.1s cubic-bezier(.3,1.4,.5,1) forwards}
+  @keyframes comboPop{0%{opacity:0;transform:translateX(-50%) scale(.5) rotate(-6deg)}25%{opacity:1;transform:translateX(-50%) scale(1.15) rotate(3deg)}40%{transform:translateX(-50%) scale(1) rotate(0)}80%{opacity:1}100%{opacity:0;transform:translateX(-50%) scale(1) translateY(-20px)}}
+  .tile.finalflash{animation:finalFlash .9s ease-out;z-index:5}
+  @keyframes finalFlash{0%{box-shadow:0 0 0 0 #fff}30%{box-shadow:0 0 24px 8px #fff,0 0 40px 16px var(--accent,#e0a060);transform:scale(1.12)}100%{box-shadow:0 0 0 0 transparent;transform:scale(1)}}
+  #achToast{position:fixed;left:50%;top:64px;transform:translateX(-50%) translateY(-80px);z-index:140;display:flex;align-items:center;gap:11px;background:#1f2026;border:1px solid var(--accent,#e0a060);border-radius:14px;padding:11px 16px 11px 13px;box-shadow:0 12px 36px rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .3s,transform .3s;max-width:320px}
+  #achToast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  #achToast .at-em{font-size:30px}
+  #achToast .at-label{font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--accent,#e0a060)}
+  #achToast .at-name{font-size:15px;font-weight:800;margin-top:1px}
+  .stars-row{display:flex;gap:5px;justify-content:center;margin:2px 0 14px}
+  .stars-row .st{font-size:28px;filter:grayscale(1) opacity(.3)}
+  .stars-row .st.on{filter:none;animation:starPop .4s cubic-bezier(.3,1.5,.5,1) both}
+  .stars-row .st.on:nth-child(2){animation-delay:.15s}
+  .stars-row .st.on:nth-child(3){animation-delay:.3s}
+  @keyframes starPop{0%{transform:scale(0) rotate(-30deg)}100%{transform:scale(1) rotate(0)}}
+  .dr-stars{position:absolute;top:8px;right:10px;font-size:11px;letter-spacing:1px}
+  /* плавающий прогресс-бар по центру внизу, ~1/4 ширины */
+  .float-prog{position:fixed;left:50%;transform:translateX(-50%);bottom:16px;z-index:65;width:26%;min-width:120px;max-width:160px}
+  .fp-track{height:7px;background:rgba(255,255,255,.1);border-radius:4px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.3)}
+  .fp-fill{height:100%;width:0;background:linear-gradient(90deg,var(--accent,#e0a060),#f0c060);border-radius:4px;transition:width .35s cubic-bezier(.3,.8,.4,1)}
+  .fp-labels{display:flex;align-items:center;justify-content:center;gap:6px;font-size:10px;opacity:.6;font-weight:700;margin-top:3px}
+  .fp-labels .fp-cur{color:var(--accent,#e0a060);opacity:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:70px}
+  .fp-labels .fp-cur::after{content:'→';margin-left:6px;opacity:.5;color:#fff}
+  .fp-labels .fp-max{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:70px}
+  .ov-reward{display:none;flex-direction:column;align-items:center;gap:2px;flex-shrink:0;background:rgba(255,255,255,.06);border:1px solid var(--accent,#e0a060);border-radius:14px;padding:12px 16px;margin-bottom:16px;animation:rewPop .5s cubic-bezier(.3,1.5,.5,1) .3s both;position:relative;overflow:hidden;width:100%;max-width:280px}
+  .ovr-flagbg{position:absolute;inset:0;opacity:.2;border-radius:14px;
+    -webkit-mask-image:radial-gradient(circle at 50% 40%,#000 25%,transparent 82%);
+    mask-image:radial-gradient(circle at 50% 40%,#000 25%,transparent 82%)}
+  .ov-reward .ovr-label,.ov-reward .ovr-em,.ov-reward .ovr-name,.ov-reward .ovr-desc{position:relative;z-index:2}
+  @keyframes rewPop{0%{transform:scale(0);opacity:0}100%{transform:scale(1);opacity:1}}
+  .ov-reward .ovr-label{font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--accent,#e0a060)}
+  .ov-reward .ovr-em{font-size:42px;margin:2px 0;filter:drop-shadow(0 3px 5px rgba(0,0,0,.4))}
+  .ov-reward .ovr-name{font-size:16px;font-weight:800}
+  .ov-reward .ovr-desc{font-size:12px;opacity:.65;font-style:italic;line-height:1.35;max-width:240px}
+  .confetti{position:absolute;width:9px;height:9px;z-index:31;pointer-events:none;border-radius:2px}
+  .sound-off .sndicon-on{display:none}.sndicon-off{display:none}.sound-off .sndicon-off{display:inline}
+  .cnt-badge{position:absolute;top:-5px;right:-5px;background:var(--accent,#e0a060);color:#15161a;font-size:10px;font-weight:800;min-width:15px;height:15px;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:0 3px;line-height:1}
+  .undo-wrap{position:relative}
+  .icon-btn.primary{background:var(--accentSh,#e0a06033);box-shadow:inset 0 0 0 1px var(--accent,#e0a060)}
+  /* вертикальная кнопка-ручка кухонь */
+  #cuisineTab{position:fixed;right:0;top:38%;z-index:80;border:none;cursor:pointer;
+    background:linear-gradient(145deg,var(--accent,#e0a060),#f0c060);color:#15161a;
+    padding:14px 7px 14px 9px;border-radius:14px 0 0 14px;
+    display:flex;flex-direction:column;align-items:center;gap:7px;
+    box-shadow:-4px 4px 16px rgba(0,0,0,.4);transition:transform .2s,padding-right .2s}
+  #cuisineTab:active{transform:scale(.95)}
+  #cuisineTab .tab-flag{font-size:22px;line-height:1}
+  #cuisineTab .tab-label{writing-mode:vertical-rl;text-orientation:mixed;font-size:11px;font-weight:900;letter-spacing:2px}
+  #cuisineTab .tab-arrow{font-size:16px;font-weight:900;line-height:1;margin-top:-2px}
+  #cuisineTab.hidden{transform:translateX(110%)}
+  /* боковая панель кухонь */
+  #drawerBackdrop{position:fixed;inset:0;z-index:90;background:rgba(8,9,12,0);backdrop-filter:blur(0px);pointer-events:none;transition:background .3s ease,backdrop-filter .3s ease}
+  #drawerBackdrop.show{background:rgba(8,9,12,.55);backdrop-filter:blur(2px);pointer-events:auto}
+  #cuisineDrawer{position:fixed;top:0;right:0;height:100dvh;width:78%;max-width:340px;z-index:91;
+    background:var(--boardbg,#241d15);border-left:1px solid rgba(255,255,255,.08);
+    box-shadow:-12px 0 40px rgba(0,0,0,.5);transform:translateX(100%);transition:transform .32s cubic-bezier(.4,.0,.2,1);
+    display:flex;flex-direction:column;padding:18px 16px;overflow-y:auto}
+  #cuisineDrawer.show{transform:translateX(0)}
+  .drawer-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+  .drawer-head h3{font-size:20px;font-weight:900;letter-spacing:-.3px}
+  .drawer-close{background:rgba(255,255,255,.08);border:none;color:#fff;width:36px;height:36px;border-radius:10px;font-size:15px;cursor:pointer}
+  .drawer-list{display:flex;flex-direction:column;gap:11px}
+  .dr-card{display:flex;align-items:center;gap:13px;padding:14px 14px;border-radius:15px;background:rgba(255,255,255,.05);cursor:pointer;transition:transform .15s,background .15s;position:relative;overflow:hidden}
+  .dr-card:active{transform:scale(.97)}
+  .dr-card.locked{opacity:.42;cursor:not-allowed}
+  .dr-card.active{background:var(--cuaccent,#e0a060)22;box-shadow:inset 0 0 0 1.5px var(--cuaccent,#e0a060)}
+  .dr-flag{font-size:30px;flex-shrink:0;filter:drop-shadow(0 2px 3px rgba(0,0,0,.3))}
+  .dr-info{flex:1;min-width:0}
+  .dr-name{font-size:16px;font-weight:800;letter-spacing:-.2px}
+  .dr-sub{font-size:11.5px;opacity:.55;font-weight:600;margin-top:2px;display:flex;align-items:center;gap:5px}
+  .dr-goal{font-size:26px;flex-shrink:0;filter:drop-shadow(0 2px 3px rgba(0,0,0,.3))}
+  .dr-lock{font-size:22px;flex-shrink:0;opacity:.6}
+  .dr-done{position:absolute;top:8px;right:8px;font-size:13px;color:var(--cuaccent,#e0a060)}
+  .dr-card.dr-soon{opacity:.55;border:1px dashed rgba(255,255,255,.2);background:rgba(255,255,255,.02)}
+  .dr-card.dr-soon .dr-sub{color:var(--accent,#e0a060);opacity:.8}
+  .dr-card .dr-bar{position:absolute;left:0;bottom:0;height:3px;background:var(--cuaccent,#e0a060);border-radius:0 2px 2px 0}
+  .icon-btn.armed{background:var(--accent,#e0a060);animation:btnPulse 1s ease-in-out infinite}
+  @keyframes btnPulse{0%,100%{box-shadow:0 0 0 0 var(--accentGlow,#e0a06066)}50%{box-shadow:0 0 0 6px var(--accentGlow,#e0a06000)}}
+  /* настройки dropdown */
+  .set-list{width:200px}
+  .set-item{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:10px;cursor:pointer;font-size:14px;font-weight:600;transition:background .12s}
+  .set-item:hover{background:rgba(255,255,255,.06)}
+  .set-ic{font-size:18px;width:22px;text-align:center}
+  .set-state{margin-left:auto;font-size:12px;font-weight:700;color:var(--accent,#e0a060);opacity:.9}
+  .set-divider{height:1px;background:rgba(255,255,255,.08);margin:5px 6px}
+  .set-item.set-danger{color:#f0726a}
+  .set-item.set-danger .set-ic{filter:none}
+  #confirmReset,#confirmRestart{position:fixed;inset:0;z-index:210;background:rgba(8,9,12,.78);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:24px}
+  #confirmRestart.show{display:flex;animation:ovIn .25s ease}
+  #confirmReset.show{display:flex;animation:ovIn .25s ease}
+  .confirm-card{background:#1f2026;border:1px solid rgba(240,114,106,.4);border-radius:20px;padding:26px 22px;max-width:340px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.6);animation:popbig .35s cubic-bezier(.3,1.4,.5,1)}
+  .confirm-em{font-size:48px;margin-bottom:12px}
+  .confirm-title{font-size:20px;font-weight:900;margin-bottom:10px}
+  .confirm-text{font-size:13.5px;opacity:.7;line-height:1.5;margin-bottom:22px}
+  .confirm-btns{display:flex;gap:10px}
+  .confirm-btns .btn{flex:1;margin:0}
+  .btn.confirm-danger{background:#e0524a;color:#fff;box-shadow:0 4px 14px rgba(224,82,74,.4)}
+  .sound-off .sndicon-on{display:none}.sndicon-off{display:none}.sound-off .sndicon-off{display:inline}
+  .vibicon-off{display:none}.vibro-off .vibicon-on{display:none}.vibro-off .vibicon-off{display:inline}
+  /* профиль шефа */
+  #chefScreen{position:fixed;inset:0;z-index:120;background:var(--bg,#15161a);display:none;flex-direction:column;padding:16px;overflow-y:auto}
+  #chefScreen.show{display:flex;animation:ovIn .3s ease}
+  .chef-screen-body{max-width:480px;width:100%;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+  .chef-card{background:rgba(255,255,255,.05);border-radius:18px;padding:26px 20px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px}
+  .chef-avatar-ring{width:104px;height:104px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:4px;
+    background:radial-gradient(circle at 50% 35%,var(--accent,#e0a060)33,transparent 70%);
+    box-shadow:0 0 0 3px var(--accent,#e0a060),0 0 22px var(--accentSh,#e0a06066),inset 0 0 18px rgba(0,0,0,.3);position:relative}
+  .chef-badge{position:absolute;bottom:-2px;right:-2px;width:38px;height:38px;border-radius:50%;background:#1f2026;
+    display:flex;align-items:center;justify-content:center;font-size:21px;box-shadow:0 0 0 2.5px var(--accent,#e0a060),0 3px 8px rgba(0,0,0,.4)}
+  .chef-avatar-ring::after{content:'';position:absolute;inset:-3px;border-radius:50%;background:conic-gradient(from 0deg,var(--accent,#e0a060),transparent 30%,var(--accent,#e0a060) 60%,transparent 90%,var(--accent,#e0a060));opacity:.35;animation:ringspin 8s linear infinite;z-index:-1}
+  @keyframes ringspin{to{transform:rotate(360deg)}}
+  .chef-big-em{font-size:58px;line-height:1;filter:drop-shadow(0 3px 6px rgba(0,0,0,.4))}
+  .chef-big-rank{font-size:22px;font-weight:900;letter-spacing:-.4px}
+  .chef-big-track{width:100%;max-width:240px;height:8px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden;margin-top:6px}
+  .chef-big-fill{height:100%;width:0;background:linear-gradient(90deg,var(--accent,#e0a060),#f0c060);border-radius:4px;transition:width .5s cubic-bezier(.3,.8,.4,1)}
+  .chef-big-xp{font-size:13px;opacity:.6;font-weight:700}
+  .chef-next{font-size:12px;opacity:.5;font-weight:600}
+  .chef-charges{font-size:12.5px;font-weight:700;margin-top:6px;color:var(--accent,#e0a060)}
+  .chef-charges b{font-weight:900}
+  /* инвентарь */
+  .inv-block{background:rgba(255,255,255,.05);border-radius:16px;padding:14px}
+  .stats-block{background:rgba(255,255,255,.05);border-radius:16px;padding:14px}
+  .ach-block{background:rgba(255,255,255,.05);border-radius:16px;padding:14px}
+  #achScreen{position:fixed;inset:0;z-index:120;background:var(--bg,#15161a);display:none;flex-direction:column;padding:16px;overflow-y:auto}
+  #achScreen.show{display:flex;animation:ovIn .3s ease}
+  #achScreenBody{max-width:480px;width:100%;margin:0 auto;display:grid;grid-template-columns:1fr;gap:9px;padding-bottom:24px}
+  .ach-grid{display:flex;flex-direction:column;gap:8px;margin-top:4px}
+  .ach-item{display:flex;align-items:center;gap:12px;padding:9px 11px;border-radius:12px;background:rgba(0,0,0,.18);transition:background .15s}
+  .ach-item.got{background:var(--accentSh,#e0a06022);box-shadow:inset 0 0 0 1px var(--accent,#e0a060)66}
+  .ach-item .ai-em{font-size:26px;flex-shrink:0;filter:grayscale(1) opacity(.5)}
+  .ach-item.got .ai-em{filter:none}
+  .ach-item .ai-name{font-size:14px;font-weight:700}
+  .ach-item.got .ai-name{color:#fff}
+  .ach-item:not(.got) .ai-name{opacity:.6}
+  .ach-item .ai-desc{font-size:11px;opacity:.5;margin-top:1px}
+  .ach-item .ai-check{margin-left:auto;font-size:16px;color:var(--accent,#e0a060)}
+  .stats-rows{display:flex;flex-direction:column;gap:8px;margin-top:4px}
+  .stat-row{display:flex;align-items:center;gap:10px;font-size:14px;padding:4px 0}
+  .stat-row .sr-flag{font-size:18px}
+  .stat-row .sr-label{font-weight:600;opacity:.8}
+  .stat-row .sr-val{margin-left:auto;font-weight:800;color:var(--accent,#e0a060)}
+  .stat-row .sr-wins{margin-left:auto;font-size:12px;opacity:.6;font-weight:700}
+  .stat-big{display:flex;gap:10px;margin-bottom:10px}
+  .stat-big .sb-cell{flex:1;background:rgba(0,0,0,.2);border-radius:11px;padding:10px;text-align:center}
+  .stat-big .sb-val{font-size:20px;font-weight:900}
+  .stat-big .sb-lbl{font-size:10.5px;opacity:.55;text-transform:uppercase;letter-spacing:.8px;font-weight:700;margin-top:2px}
+  .stats-divider{height:1px;background:rgba(255,255,255,.08);margin:10px 0}
+  .inv-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:11px;font-size:14px;font-weight:800}
+  .inv-count{font-size:12px;opacity:.6;font-weight:700;color:var(--accent,#e0a060)}
+  .inv-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+  .inv-slot{aspect-ratio:1;border-radius:13px;background:rgba(0,0,0,.22);display:flex;align-items:center;justify-content:center;font-size:30px;position:relative;cursor:default;box-shadow:inset 0 2px 6px rgba(0,0,0,.3);transition:transform .15s}
+  .inv-slot.filled{background:linear-gradient(150deg,rgba(255,255,255,.09),rgba(255,255,255,.03));box-shadow:inset 0 0 0 1px var(--accent,#e0a060)55,0 2px 8px rgba(0,0,0,.25);cursor:pointer;position:relative;overflow:hidden}
+  .inv-slot.filled:active{transform:scale(.94)}
+  .it-flagbg{position:absolute;inset:0;opacity:.28;border-radius:13px;
+    -webkit-mask-image:radial-gradient(circle at 50% 45%,#000 30%,transparent 78%);
+    mask-image:radial-gradient(circle at 50% 45%,#000 30%,transparent 78%)}
+  .inv-slot.filled::after{content:'';position:absolute;inset:0;border-radius:13px;background:radial-gradient(circle at 50% 38%,transparent 40%,rgba(0,0,0,.35) 100%);pointer-events:none}
+  .inv-slot.empty{opacity:.5;font-size:20px}
+  .inv-slot .it-em{filter:drop-shadow(0 2px 4px rgba(0,0,0,.5));position:relative;z-index:2}
+  /* tooltip предмета */
+  .item-pop{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);z-index:130;
+    background:#1f2026;border:1px solid var(--accent,#e0a060);border-radius:16px;padding:16px 18px;width:86%;max-width:340px;
+    box-shadow:0 16px 48px rgba(0,0,0,.6);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;text-align:center}
+  .item-pop.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .item-pop{overflow:hidden}
+  .ip-flagbg{position:absolute;inset:0;opacity:.18;border-radius:16px;display:none;
+    -webkit-mask-image:radial-gradient(circle at 50% 40%,#000 25%,transparent 80%);
+    mask-image:radial-gradient(circle at 50% 40%,#000 25%,transparent 80%)}
+  .item-pop .ip-em,.item-pop .ip-name,.item-pop .ip-desc{position:relative;z-index:2}
+  .item-pop .ip-em{font-size:46px;margin-bottom:8px}
+  .item-pop .ip-name{font-size:17px;font-weight:800;margin-bottom:5px}
+  .item-pop .ip-desc{font-size:13px;opacity:.7;line-height:1.4;font-style:italic}
+  .chef-book-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%}
+  .chef-book-count{background:rgba(0,0,0,.2);padding:2px 9px;border-radius:8px;font-size:13px}
+  .ranks-list{display:flex;flex-direction:column;gap:8px;margin-top:4px}
+  .rank-row{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:12px;background:rgba(255,255,255,.04);font-size:14px}
+  .rank-row.cur{background:var(--accentSh,#e0a06033);box-shadow:inset 0 0 0 1px var(--accent,#e0a060)}
+  .rank-row.done{opacity:.55}
+  .rank-row .rr-em{font-size:22px;position:relative}
+  .rank-row .rr-badge{font-size:12px;position:absolute;bottom:-3px;right:-6px}
+  .rank-row .rr-name{font-weight:700}
+  .rank-row .rr-xp{margin-left:auto;font-size:12px;opacity:.6;font-weight:600}
+  .rank-row.cur .rr-xp{color:var(--accent,#e0a060);opacity:1}
+  /* загрузочный экран */
+  #splash{position:fixed;inset:0;z-index:200;background:#15161a;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;transition:opacity .5s ease}
+  #splash.hide{opacity:0;pointer-events:none}
+  #splash .logo{font-size:78px;animation:logoP 1.6s ease-in-out infinite}
+  @keyframes logoP{0%,100%{transform:scale(1) rotate(-3deg)}50%{transform:scale(1.08) rotate(3deg)}}
+  #splash .logo-em{display:inline-block}
+  #splash h1{font-size:27px;font-weight:900;letter-spacing:-.5px;background:linear-gradient(120deg,#e0a060,#f0b840,#7ec46a,#e878a8);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;background-size:200% auto;animation:shimmer 3s linear infinite}
+  @keyframes shimmer{to{background-position:200% center}}
+  #splash .sub{font-size:13px;opacity:.5;font-weight:600;letter-spacing:.5px}
+  #splash .bar{width:140px;height:4px;background:rgba(255,255,255,.1);border-radius:2px;overflow:hidden;margin-top:6px}
+  #splash .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#e0a060,#f0b840);border-radius:2px;animation:fill 1.1s ease forwards}
+  @keyframes fill{to{width:100%}}
+  /* онбординг */
+  #onb{position:absolute;inset:0;z-index:40;background:rgba(10,11,14,.82);backdrop-filter:blur(3px);border-radius:18px;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px}
+  #onb.show{display:flex;animation:ovIn .3s ease}
+  #onb .hand{font-size:48px;animation:swipeHand 2.6s ease-in-out infinite;margin-top:6px}
+  @keyframes swipeHand{0%{transform:translateX(40px) rotate(8deg);opacity:0}10%{opacity:1}40%{transform:translateX(-30px) rotate(-8deg);opacity:1}55%{transform:translateX(-30px);opacity:.6}70%,100%{transform:translateX(40px) rotate(8deg);opacity:0}}
+  /* демо-поле в онбординге */
+  .onb-demo{position:relative;width:208px;height:64px;margin-bottom:22px}
+  .onb-cell{position:absolute;width:64px;height:64px;border-radius:12px;background:rgba(255,255,255,.07);top:0}
+  .onb-cell:nth-child(1){left:0}.onb-cell:nth-child(2){left:72px}.onb-cell:nth-child(3){left:144px}
+  .onb-tile{position:absolute;width:64px;height:64px;border-radius:12px;background:#3a3b42;display:flex;align-items:center;justify-content:center;font-size:34px;top:0;box-shadow:0 3px 8px rgba(0,0,0,.3)}
+  .onb-tile.t1{left:0;animation:onbT1 2.6s ease-in-out infinite}
+  .onb-tile.t2{left:72px;animation:onbT2 2.6s ease-in-out infinite}
+  .onb-tile.t3{left:0;opacity:0;animation:onbT3 2.6s ease-in-out infinite}
+  @keyframes onbT1{0%,30%{left:0;opacity:1}45%,55%{left:0;opacity:0}56%,100%{opacity:0}}
+  @keyframes onbT2{0%,30%{left:72px;opacity:1}45%{left:0;opacity:0}55%{opacity:0}56%,100%{opacity:0}}
+  @keyframes onbT3{0%,44%{opacity:0;transform:scale(1)}46%{opacity:1;transform:scale(1.18)}60%{transform:scale(1)}88%{opacity:1}100%{opacity:0}}
+  #onb p{font-size:16px;font-weight:600;max-width:240px;line-height:1.4;margin-bottom:18px}
+  /* плавная смена кухни */
+  .board-wrap.switching .tiles{transition:opacity .25s ease}
+  #transFade{position:fixed;inset:0;z-index:150;background:var(--bg,#15161a);opacity:0;pointer-events:none;transition:opacity .45s cubic-bezier(.4,0,.2,1)}
+  #transFade.on{opacity:1}
+</style>
+</head>
+<body>
+<div id="splash">
+  <div class="logo"><span class="logo-em">🍽️</span></div>
+  <h1>Dish Dash</h1>
+  <div class="sub">2048</div>
+  <div class="bar"><i></i></div>
+</div>
+<div id="transFade"></div>
+<div class="top">
+  <div class="top-left">
+    <div class="undo-wrap"><button class="icon-btn" id="undoBtn" title="Отменить ход">↶</button><span class="cnt-badge" id="undoBadge">1</span></div>
+    <div class="undo-wrap"><button class="icon-btn" id="boostBtn" title="Прокачать блюдо">⬆️</button><span class="cnt-badge" id="boostBadge">1</span></div>
+    <div class="undo-wrap"><button class="icon-btn" id="clearBtn" title="Убрать со стола">🧹</button><span class="cnt-badge" id="clearBadge">1</span></div>
+    <button class="icon-btn" id="restartBtn" title="Новая игра">🔄</button>
+  </div>
+  <div class="top-right">
+    <button class="icon-btn" id="chefBtn" title="Профиль шефа">👶<span class="book-badge" id="bookBadge" style="display:none"></span></button>
+    <div class="menu-wrap"><button class="icon-btn" id="setBtn" title="Настройки">⚙️</button>
+      <div class="menu-list set-list" id="setList">
+        <div class="set-item" id="setSound"><span class="set-ic sndicon-on">🔊</span><span class="set-ic sndicon-off">🔈</span><span id="setSoundLbl">Звук</span><span class="set-state" id="setSoundState">вкл</span></div>
+        <div class="set-item" id="setVibro"><span class="set-ic vibicon-on">📳</span><span class="set-ic vibicon-off">📴</span><span id="setVibroLbl">Вибрация</span><span class="set-state" id="setVibroState">вкл</span></div>
+        <div class="set-item" id="setLang"><span class="set-ic">🌐</span><span id="setLangLbl">Язык</span><span class="set-state" id="setLangState">RU</span></div>
+        <div class="set-divider"></div>
+        <div class="set-item set-danger" id="setReset"><span class="set-ic">🗑️</span><span id="setResetLbl">Сбросить прогресс</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="stats">
+  <div class="stat"><div class="lbl" id="lblScore">Счёт</div><div class="val" id="score">0</div></div>
+  <div class="stat"><div class="lbl" id="lblBest">Рекорд</div><div class="val" id="best">0</div></div>
+</div>
+<div class="board-wrap" id="boardWrap">
+  <div class="board" id="board"></div>
+  <div class="tiles" id="tiles"></div>
+  <div class="overlay" id="overlay"><div class="bigicon" id="ovIcon"></div><h2 id="ovTitle"></h2><p id="ovText"></p><div id="ovBtns"></div></div>
+  <div id="onb">
+    <div class="onb-demo">
+      <div class="onb-cell"></div><div class="onb-cell"></div><div class="onb-cell"></div>
+      <div class="onb-tile t1">🥟</div>
+      <div class="onb-tile t2">🥟</div>
+      <div class="onb-tile t3">🍲</div>
+    </div>
+    <div class="hand">👆</div>
+    <p id="onbText">Свайпай, чтобы двигать блюда. Одинаковые соединяются!</p>
+    <button class="btn" id="onbBtn">Понятно</button>
+  </div>
+  <div class="boost-hint" id="boostHint"></div>
+</div>
+<div class="hint" id="hint"></div>
+<div class="float-prog" id="floatProg">
+  <div class="fp-track"><div class="fp-fill" id="progfill"></div></div>
+</div>
+<div id="achToast"><span class="at-em" id="atEm"></span><div class="at-txt"><div class="at-label" id="atLabel">Достижение!</div><div class="at-name" id="atName"></div></div></div>
+<button id="cuisineTab" title="Кухни">
+  <span class="tab-flag" id="tabFlag">🇷🇺</span>
+  <span class="tab-label" id="tabLabel">КУХНИ</span>
+  <span class="tab-arrow">‹</span>
+</button>
+<div id="drawerBackdrop"></div>
+<aside id="cuisineDrawer">
+  <div class="drawer-head"><h3 id="drawerTitle">Кухни</h3><button class="drawer-close" id="drawerClose">✕</button></div>
+  <div class="drawer-list" id="drawerList"></div>
+</aside>
+<div id="bookScreen">
+  <div class="book-head">
+    <button class="book-close" id="bookClose">✕</button>
+    <h2 id="bookTitle">Кулинарная книга</h2>
+    <div class="book-prog" id="bookProg">0 / 0</div>
+  </div>
+  <div class="book-body" id="bookBody"></div>
+</div>
+<div id="achScreen">
+  <div class="book-head">
+    <button class="book-close" id="achClose">✕</button>
+    <h2 id="achScreenTitle">Достижения</h2>
+    <div class="book-prog" id="achScreenProg">0 / 30</div>
+  </div>
+  <div class="book-body" id="achScreenBody"></div>
+</div>
+<div id="chefScreen">
+  <div class="book-head">
+    <button class="book-close" id="chefClose">✕</button>
+    <h2 id="chefTitle">Профиль шефа</h2>
+  </div>
+  <div class="chef-screen-body">
+    <div class="chef-card">
+      <div class="chef-avatar-ring"><div class="chef-big-em" id="chefBigEm">👶</div></div>
+      <div class="chef-big-rank" id="chefBigRank">Поварёнок</div>
+      <div class="chef-big-track"><div class="chef-big-fill" id="chefBigFill"></div></div>
+      <div class="chef-big-xp" id="chefBigXp">0 XP</div>
+      <div class="chef-next" id="chefNext"></div>
+    </div>
+    <div class="inv-block">
+      <div class="inv-head"><span id="invTitle">Инвентарь</span><span class="inv-count" id="invCount">0/6</span></div>
+      <div class="inv-grid" id="invGrid"></div>
+    </div>
+    <div class="stats-block">
+      <div class="inv-head"><span id="statsTitle">Статистика</span></div>
+      <div class="stats-rows" id="statsRows"></div>
+    </div>
+    <button class="btn chef-book-btn" id="openBookBtn">📖 <span id="openBookLbl">Кулинарная книга</span> <span class="chef-book-count" id="chefBookCount">0/51</span></button>
+    <button class="btn chef-book-btn" id="openAchBtn">🏆 <span id="openAchLbl">Достижения</span> <span class="chef-book-count" id="chefAchCount">0/30</span></button>
+    <div class="ranks-list" id="ranksList"></div>
+  </div>
+</div>
+<div class="item-pop" id="itemPop"><div class="ip-em" id="ipEm"></div><div class="ip-name" id="ipName"></div><div class="ip-desc" id="ipDesc"></div></div>
+<div id="confirmRestart">
+  <div class="confirm-card">
+    <div class="confirm-em">🔄</div>
+    <div class="confirm-title" id="crTitle">Начать заново?</div>
+    <div class="confirm-text" id="crText">Текущая партия на этой кухне будет сброшена. Прогресс других кухонь и шефа сохранится.</div>
+    <div class="confirm-btns">
+      <button class="btn ghost" id="crCancel">Отмена</button>
+      <button class="btn" id="crYes">Новая игра</button>
+    </div>
+  </div>
+</div>
+<div id="confirmReset">
+  <div class="confirm-card">
+    <div class="confirm-em">⚠️</div>
+    <div class="confirm-title" id="confirmTitle">Сбросить весь прогресс?</div>
+    <div class="confirm-text" id="confirmText">Будут удалены все кухни, уровни шефа, предметы, рекорды и статистика. Это действие нельзя отменить.</div>
+    <div class="confirm-btns">
+      <button class="btn ghost" id="confirmCancel">Отмена</button>
+      <button class="btn confirm-danger" id="confirmYes">Да, сбросить</button>
+    </div>
+  </div>
+</div>
+<script>
+const T={
+ ru:{score:'Счёт',best:'Рекорд',goal:'Цель — собрать:',hint:'Свайпай пальцем или стрелками',win:'Кухня покорена!',collected:'Ты приготовил',unlocked:'Открыта',cuisine:'кухня',last:'Последняя кухня покорена — ты мастер-шеф!',goTo:'Перейти к',playAgain:'Играть ещё',lose:'Поле забито',loseText:'Ходов больше нет. Попробуй ещё раз!',retry:'Заново',onb:'Свайпай, чтобы двигать блюда. Одинаковые соединяются!',onbBtn:'Понятно',sub:'Кухни Мира',noUndo:'Отмена будет доступна завтра',book:'Кулинарная книга',noBoost:'Бустер будет доступен завтра',boostArm:'Тапни блюдо, чтобы прокачать',boostDone:'Блюдо прокачано!',locked:'Не открыто',noClear:'Уборка будет доступна завтра',clearDone:'Стол убран!',clearEmpty:'Нет блюд для уборки'},
+ en:{score:'Score',best:'Best',goal:'Goal — make:',hint:'Swipe or use arrow keys',win:'Cuisine mastered!',collected:'You cooked',unlocked:'Unlocked',cuisine:'cuisine',last:"Last cuisine mastered — you're a master chef!",goTo:'Go to',playAgain:'Play again',lose:'Board is full',loseText:'No moves left. Try again!',retry:'Restart',onb:'Swipe to move dishes. Matching ones merge!',onbBtn:'Got it',sub:'World Cuisines',noUndo:'Undo available again tomorrow',book:'Cookbook',noBoost:'Boost available again tomorrow',boostArm:'Tap a dish to upgrade it',boostDone:'Dish upgraded!',locked:'Not discovered',noClear:'Clear available again tomorrow',clearDone:'Table cleared!',clearEmpty:'No dishes to clear'}
+};
+const CUISINES=[
+ {key:'ru',name:{ru:'Русская',en:'Russian'},flag:'\uD83C\uDDF7\uD83C\uDDFA',accent:'#e0a060',bg:'#191510',boardbg:'#241d15',
+  em:['\uD83E\uDD5F','\uD83C\uDF72','\uD83E\uDD52','\uD83E\uDD63','\uD83E\uDD5E','\uD83E\uDD67'],
+  names:{ru:['Пельмень','Куриный суп','Солёный огурец','Каша','Блины','Пирог'],en:['Pelmeni','Chicken soup','Pickle','Porridge','Blini','Pie']}},
+ {key:'it',name:{ru:'Итальянская',en:'Italian'},flag:'\uD83C\uDDEE\uD83C\uDDF9',accent:'#7ec46a',bg:'#13180f',boardbg:'#1c2417',
+  em:['\uD83C\uDF45','\uD83E\uDDC0','\uD83C\uDF5D','\uD83C\uDF55','\uD83E\uDD56','\uD83C\uDF77','\uD83C\uDF70'],
+  names:{ru:['Помидор','Сыр','Паста','Пицца','Чиабатта','Вино','Тирамису'],en:['Tomato','Cheese','Pasta','Pizza','Ciabatta','Wine','Tiramisu']}},
+ {key:'jp',name:{ru:'Японская',en:'Japanese'},flag:'\uD83C\uDDEF\uD83C\uDDF5',accent:'#e878a8',bg:'#181014',boardbg:'#23181e',
+  em:['\uD83C\uDF59','\uD83C\uDF64','\uD83C\uDF63','\uD83C\uDF71','\uD83C\uDF65','\uD83C\uDF5C','\uD83C\uDF75','\uD83C\uDF61'],
+  names:{ru:['Онигири','Темпура','Суши','Бенто','Камабоко','Рамен','Матча','Данго'],en:['Onigiri','Tempura','Sushi','Bento','Narutomaki','Ramen','Matcha','Dango']}},
+ {key:'mx',name:{ru:'Мексиканская',en:'Mexican'},flag:'\uD83C\uDDF2\uD83C\uDDFD',accent:'#f0b840',bg:'#1a1409',boardbg:'#251d10',
+  em:['\uD83C\uDF3D','\uD83E\uDED1','\uD83C\uDF2E','\uD83C\uDF2F','\uD83C\uDF5B','\uD83E\uDD51','\uD83C\uDF36\uFE0F','\uD83C\uDF79','\uD83E\uDDC1'],
+  names:{ru:['Кукуруза','Перец','Тако','Буррито','Энчилада','Авокадо','Чили-перец','Маргарита','Чуррос'],en:['Corn','Pepper','Taco','Burrito','Enchilada','Avocado','Chili pepper','Margarita','Churros']}},
+ {key:'in',name:{ru:'Индийская',en:'Indian'},flag:'\uD83C\uDDEE\uD83C\uDDF3',accent:'#e8893a',bg:'#1a1209',boardbg:'#261a10',
+  em:['\uD83C\uDF5A','\uD83E\uDED3','\uD83E\uDDC5','\uD83C\uDF36\uFE0F','\uD83E\uDDC4','\uD83C\uDF72','\uD83C\uDF5B','\uD83E\uDD58','\uD83C\uDF61','\uD83C\uDF6C'],
+  names:{ru:['Рис','Лепёшка','Лук','Чили','Чеснок','Дал','Карри','Бирьяни','Ладу','Барфи'],en:['Rice','Naan','Onion','Chili','Garlic','Dal','Curry','Biryani','Laddu','Barfi']}},
+ {key:'fr',name:{ru:'Французская',en:'French'},flag:'\uD83C\uDDEB\uD83C\uDDF7',accent:'#9a8ce0',bg:'#13121a',boardbg:'#1c1a26',
+  em:['\uD83E\uDDC8','\uD83E\uDD50','\uD83E\uDDC0','\uD83C\uDF77','\uD83E\uDD56','\uD83C\uDF72','\uD83D\uDC0C','\uD83C\uDF46','\uD83C\uDF70','\uD83C\uDF69','\uD83C\uDF82'],
+  names:{ru:['Масло','Круассан','Сыр','Вино','Багет','Луковый суп','Эскарго','Рататуй','Эклер','Профитроли','Торт'],en:['Butter','Croissant','Cheese','Wine','Baguette','Onion soup','Escargot','Ratatouille','Éclair','Profiteroles','Cake']}}
+];
+const TILE_TONES=['#2c2d34','#34333a','#3d3a3e','#473f40','#524542','#5e4b43','#6b5244','#785945','#866046','#946748','#a2704a'];
+
+// Факты о блюдах для кулинарной книги [по кухням][по блюду]
+const FACTS={
+ ru:{ru:['Лепить умеет каждый, а вот не слипнуть — талант.','Лечит простуду, похмелье и разбитое сердце.','Хрустит на весь стол и просит вторую банку.','Завтрак чемпионов и студентов перед парой.','Первый блин комом, остальные — на масленицу.','С чаем зайдёт даже в полночь у холодильника.'],
+     en:['Anyone can fold them, not sticking is the art.','Cures a cold, a hangover and a broken heart.','Crunches across the table and begs for a second jar.','Breakfast of champions and oversleeping students.','First one\'s a flop, the rest are a feast.','Goes with tea even at a midnight fridge raid.']},
+ it:{ru:['Краснеет от любви и хорошего соуса.','Чем дольше зреет, тем дороже капризничает.','Форм больше, чем у тебя отговорок не готовить.','За её рецепт в Неаполе могут и обидеться.','Дырки — не брак, а характер.','Бокал для храбрости, бутылка для вдохновения.','«Взбодри меня» — и правда взбодрит.'],
+     en:['Blushes from love and a good sauce.','The longer it ages, the pricier its mood.','More shapes than your excuses not to cook.','Mess up the recipe in Naples at your own risk.','The holes are character, not a defect.','A glass for courage, a bottle for inspiration.','"Pick me up" — and it really does.']},
+ jp:{ru:['Треугольник, который держит себя в руках.','Хрустит так, что слышно соседний стол.','Раньше — консервы, теперь — высокая кухня.','Коробочка, где у каждого блюда своя комната.','Розовый завиток с твёрдым характером.','Китаец по паспорту, японец по душе.','Зелёный, бодрый и слегка церемонный.','Шарики на палочке — счастье на троих.'],
+     en:['A triangle that keeps it together.','Crunches loud enough for the next table.','Once canned fish, now haute cuisine.','A box where every dish has its own room.','A pink swirl with a firm character.','Chinese by passport, Japanese at heart.','Green, peppy and slightly ceremonial.','Skewered balls — happiness times three.']},
+ mx:{ru:['Растёт в поле, правит на кухне.','От «приятно» до «вызывайте пожарных».','Ешь руками — вилка тут только мешает.','Свёрток, в котором помещается весь обед.','Острая мясная драма с фасолью.','Сегодня тост, завтра гуакамоле.','Маленький, зелёный, мстительный.','Один бокал — и ты уже танцуешь.','Хрустит, посыпан сахаром и не извиняется.'],
+     en:['Grows in the field, rules the kitchen.','From "nice" to "call the firefighters".','Eat with hands — a fork just gets in the way.','A wrap that fits an entire lunch.','A spicy meaty drama with beans.','Toast today, guacamole tomorrow.','Small, green, vengeful.','One glass and you\'re already dancing.','Crunchy, sugared and unapologetic.']},
+ in:{ru:['Тысяча блюд начинается с одной горсти.','Пухлая лепёшка прямо из раскалённой печи.','Заставит прослезиться даже самых стойких.','Привезли как сувенир, остались навсегда.','Дуэт, без которого специи не специи.','Суп, который обнимает изнутри.','И блюдо, и смесь, и образ жизни.','Праздничный рис, который пахнет на весь дом.','Сладкие шарики счастья по любому поводу.','Тает во рту быстрее, чем успеваешь поделиться.'],
+     en:['A thousand dishes start with one handful.','A puffy flatbread straight from the blazing oven.','Brings even the toughest to tears.','Came as a souvenir, stayed forever.','The duo without which spices aren\'t spices.','A soup that hugs you from inside.','A dish, a blend, and a way of life.','Festive rice that perfumes the whole house.','Sweet balls of joy for any occasion.','Melts faster than you can share it.']},
+ fr:{ru:['Французы кладут его даже в масло.','Притворяется французом, а сам из Австрии.','Сортов столько, что жизни не хватит попробовать.','Чем пыльнее бутылка, тем серьёзнее разговор.','Закон строго следит за его хрустом.','Суп, ради корочки которого всё и затевалось.','Улитки, которые внезапно деликатес.','Способ заставить детей съесть овощи.','По-французски — «молния», по факту — за секунду.','Шарики, которые тонут в шоколаде добровольно.','Венец, корона и финальный аккорд кухни.'],
+     en:['The French even put it in their butter.','Pretends to be French, secretly Austrian.','More types than one life can taste.','The dustier the bottle, the bigger the talk.','The law literally guards its crunch.','A soup made entirely for that cheesy crust.','Snails that somehow became a delicacy.','A trick to make kids eat vegetables.','"Lightning" in French — gone in a second.','Balls that willingly drown in chocolate.','The crown, the finale, the last word.']}
+};
+
+// Звания шефа: порог XP -> название
+const RANKS=[
+ {xp:0,ru:'Поварёнок',en:'Trainee',em:'\uD83E\uDDD2',badge:''},
+ {xp:16000,ru:'Повар',en:'Cook',em:'\uD83E\uDDD1\u200D\uD83C\uDF73',badge:''},
+ {xp:50000,ru:'Су-шеф',en:'Sous-chef',em:'\uD83D\uDC68\u200D\uD83C\uDF73',badge:'\uD83C\uDF7D\uFE0F'},
+ {xp:120000,ru:'Шеф',en:'Chef',em:'\uD83D\uDC69\u200D\uD83C\uDF73',badge:'\u2B50'},
+ {xp:260000,ru:'Мастер-шеф',en:'Master chef',em:'\uD83D\uDC68\u200D\uD83C\uDF73',badge:'\uD83C\uDFC5'},
+ {xp:560000,ru:'Мишлен',en:'Michelin',em:'\uD83D\uDC69\u200D\uD83C\uDF73',badge:'\uD83D\uDC51'}
+];
+function rankFor(xp){let r=RANKS[0],idx=0;for(let i=0;i<RANKS.length;i++)if(xp>=RANKS[i].xp){r=RANKS[i];idx=i;}return{rank:r,idx};}
+function nextRank(idx){return idx<RANKS.length-1?RANKS[idx+1]:null;}
+
+// Достижения: кривая открытия — первые лёгкие, дальше тяжелее
+const ACHIEVEMENTS=[
+ // базовые
+ {id:'first_merge',em:'🍳',name:{ru:'Первый шаг',en:'First step'},desc:{ru:'Сделай первое слияние',en:'Make your first merge'}},
+ {id:'first_win',em:'🏆',name:{ru:'Дебют шефа',en:'Chef debut'},desc:{ru:'Пройди первую кухню',en:'Beat your first cuisine'}},
+ {id:'combo3',em:'🔥',name:{ru:'В огне',en:'On fire'},desc:{ru:'Слей 3 блюда за один ход',en:'Merge 3 dishes in one move'}},
+ // прохождение каждой кухни
+ {id:'win_ru',em:'🇷🇺',name:{ru:'Душа России',en:'Russian soul'},desc:{ru:'Покори Русскую кухню',en:'Master Russian cuisine'}},
+ {id:'win_it',em:'🇮🇹',name:{ru:'Бель паэзе',en:'Bel paese'},desc:{ru:'Покори Итальянскую кухню',en:'Master Italian cuisine'}},
+ {id:'win_jp',em:'🇯🇵',name:{ru:'Путь самурая',en:'Way of samurai'},desc:{ru:'Покори Японскую кухню',en:'Master Japanese cuisine'}},
+ {id:'win_mx',em:'🇲🇽',name:{ru:'Вива Мексика',en:'Viva México'},desc:{ru:'Покори Мексиканскую кухню',en:'Master Mexican cuisine'}},
+ {id:'win_in',em:'🇮🇳',name:{ru:'Магия специй',en:'Spice magic'},desc:{ru:'Покори Индийскую кухню',en:'Master Indian cuisine'}},
+ {id:'win_fr',em:'🇫🇷',name:{ru:'О-ля-ля',en:'Ooh là là'},desc:{ru:'Покори Французскую кухню',en:'Master French cuisine'}},
+ // комбо
+ {id:'combo4',em:'💥',name:{ru:'Взрыв вкуса',en:'Flavor blast'},desc:{ru:'Слей 4 блюда за один ход',en:'Merge 4 dishes in one move'}},
+ {id:'combo5',em:'🌋',name:{ru:'Кулинарный вулкан',en:'Culinary volcano'},desc:{ru:'Слей 5 блюд за один ход',en:'Merge 5 dishes in one move'}},
+ // звёзды
+ {id:'stars3',em:'⭐',name:{ru:'Перфекционист',en:'Perfectionist'},desc:{ru:'Получи 3 звезды за кухню',en:'Earn 3 stars on a cuisine'}},
+ {id:'stars3_three',em:'✨',name:{ru:'Звёздный шеф',en:'Star chef'},desc:{ru:'3 звезды на трёх кухнях',en:'3 stars on three cuisines'}},
+ {id:'allstars',em:'💎',name:{ru:'Легенда',en:'Legend'},desc:{ru:'3 звезды на всех кухнях',en:'3 stars on every cuisine'}},
+ // чистая игра
+ {id:'noboost',em:'🧘',name:{ru:'Чистая игра',en:'Pure play'},desc:{ru:'Пройди кухню без бустеров',en:'Beat a cuisine without boosters'}},
+ {id:'noboost_hard',em:'🥷',name:{ru:'Мастер дзена',en:'Zen master'},desc:{ru:'Пройди Индийскую или Французскую без бустеров',en:'Beat Indian or French without boosters'}},
+ // коллекция
+ {id:'collect10',em:'🍽️',name:{ru:'Начинающий гурман',en:'Junior gourmet'},desc:{ru:'Открой 10 блюд',en:'Discover 10 dishes'}},
+ {id:'collect25',em:'📖',name:{ru:'Гурман',en:'Gourmet'},desc:{ru:'Открой 25 блюд',en:'Discover 25 dishes'}},
+ {id:'collect_all',em:'📚',name:{ru:'Полная книга',en:'Full cookbook'},desc:{ru:'Открой все 51 блюдо',en:'Discover all 51 dishes'}},
+ // партии
+ {id:'games10',em:'🎲',name:{ru:'Разогрев',en:'Warm-up'},desc:{ru:'Сыграй 10 партий',en:'Play 10 games'}},
+ {id:'games50',em:'🎮',name:{ru:'Завсегдатай',en:'Regular'},desc:{ru:'Сыграй 50 партий',en:'Play 50 games'}},
+ {id:'games150',em:'🕹️',name:{ru:'Кухонный задрот',en:'Kitchen addict'},desc:{ru:'Сыграй 150 партий',en:'Play 150 games'}},
+ // победы
+ {id:'wins10',em:'🥇',name:{ru:'Серийный шеф',en:'Serial chef'},desc:{ru:'Одержи 10 побед',en:'Win 10 times'}},
+ {id:'wins30',em:'🏅',name:{ru:'Чемпион плиты',en:'Stove champion'},desc:{ru:'Одержи 30 побед',en:'Win 30 times'}},
+ {id:'winall',em:'👑',name:{ru:'Властелин кухонь',en:'Master of cuisines'},desc:{ru:'Пройди все 6 кухонь',en:'Beat all 6 cuisines'}},
+ // звания шефа
+ {id:'rank_sous',em:'🎖️',name:{ru:'Дослужился',en:'Promoted'},desc:{ru:'Стань Су-шефом',en:'Reach Sous-chef'}},
+ {id:'rank_chef',em:'🏵️',name:{ru:'Большой шеф',en:'Big chef'},desc:{ru:'Стань Шефом',en:'Reach Chef'}},
+ {id:'rank_michelin',em:'⭐',name:{ru:'Три звезды Мишлен',en:'Three Michelin stars'},desc:{ru:'Достигни звания Мишлен',en:'Reach Michelin rank'}},
+ // счёт
+ {id:'score1k',em:'💰',name:{ru:'Тысячник',en:'Grand'},desc:{ru:'Набери 1000 очков за партию',en:'Score 1000 in one game'}},
+ {id:'score_total',em:'🌟',name:{ru:'Миллион вкусов',en:'Million flavors'},desc:{ru:'Набери 100 000 очков всего',en:'Score 100,000 total'}}
+];
+// расчёт звёзд за прохождение: база 1★, +1 без бустеров, +1 за эффективность (мало ходов)
+function calcStars(cuisineIdx,moves,usedBoost){
+ const goal=cuisineIdx+6; // число блюд в кухне = порог сложности
+ let stars=1;
+ if(!usedBoost)stars++;
+ // эффективность: чем больше блюд в кухне, тем больше ходов допустимо
+ const threshold=18+cuisineIdx*9; // примерный «хороший» лимит ходов
+ if(moves<=threshold)stars++;
+ return Math.min(3,stars);
+}
+function hasAch(id){return achState&&achState.unlocked&&achState.unlocked.includes(id);}
+function unlockAch(id){if(hasAch(id))return;achState.unlocked.push(id);save();const a=ACHIEVEMENTS.find(x=>x.id===id);if(a)setTimeout(()=>showAchToast(a),400);}
+function checkAchievements(ctx){ctx=ctx||{};
+ const totalWins=Object.values(stats.winsPer||{}).reduce((a,b)=>a+b,0);
+ const wonCuisines=Object.keys(stats.winsPer||{}).filter(k=>stats.winsPer[k]>0).length;
+ const threeStarCount=Object.values(stats.stars||{}).filter(s=>s>=3).length;
+ const maxStars=Math.max(0,...Object.values(stats.stars||{}));
+ const allThree=CUISINES.every(c=>(stats.stars&&stats.stars[c.key])===3);
+ const disc=(typeof discoveredCount==='function')?discoveredCount():0;
+ const rankIdx=rankFor(xp).idx;
+ // базовые
+ if(ctx.merged)unlockAch('first_merge');
+ if(ctx.combo>=3)unlockAch('combo3');
+ if(ctx.combo>=4)unlockAch('combo4');
+ if(ctx.combo>=5)unlockAch('combo5');
+ if(totalWins>=1)unlockAch('first_win');
+ // per-cuisine win
+ if(ctx.wonKey)unlockAch('win_'+ctx.wonKey);
+ // звёзды
+ if(maxStars>=3)unlockAch('stars3');
+ if(threeStarCount>=3)unlockAch('stars3_three');
+ if(allThree)unlockAch('allstars');
+ // чистая игра
+ if(ctx.wonNoBoost)unlockAch('noboost');
+ if(ctx.wonNoBoost&&(ctx.wonKey==='in'||ctx.wonKey==='fr'))unlockAch('noboost_hard');
+ // коллекция
+ if(disc>=10)unlockAch('collect10');
+ if(disc>=25)unlockAch('collect25');
+ if(disc>=51)unlockAch('collect_all');
+ // партии
+ if((stats.games||0)>=10)unlockAch('games10');
+ if((stats.games||0)>=50)unlockAch('games50');
+ if((stats.games||0)>=150)unlockAch('games150');
+ // победы
+ if(totalWins>=10)unlockAch('wins10');
+ if(totalWins>=30)unlockAch('wins30');
+ if(wonCuisines>=CUISINES.length)unlockAch('winall');
+ // звания
+ if(rankIdx>=2)unlockAch('rank_sous');
+ if(rankIdx>=3)unlockAch('rank_chef');
+ if(rankIdx>=5)unlockAch('rank_michelin');
+ // счёт
+ if((ctx.gameScore||score||0)>=1000)unlockAch('score1k');
+ if((totalScore||0)>=100000)unlockAch('score_total');
+}
+
+// Предметы за прохождение кухонь (RPG-артефакты)
+const ITEMS={
+ ru:{em:'\uD83E\uDD44',name:{ru:'Серебряная ложка',en:'Silver spoon'},desc:{ru:'С такой и кашу есть приятнее, и щи наваристее.',en:'Makes the porridge tastier and the soup richer.'},flag:['#ffffff','#0039a6','#d52b1e']},
+ it:{em:'\uD83D\uDD2A',name:{ru:'Нож мастера',en:"Master's knife"},desc:{ru:'Режет помидор тоньше бумаги.',en:'Slices a tomato thinner than paper.'},flag:['#009246','#ffffff','#ce2b37']},
+ jp:{em:'\uD83E\uDD62',name:{ru:'Палочки сэнсэя',en:"Sensei's chopsticks"},desc:{ru:'Передаются от учителя к ученику веками.',en:'Passed from master to student for centuries.'},flag:['#ffffff','#bc002d','#ffffff']},
+ mx:{em:'\uD83C\uDF36\uFE0F',name:{ru:'Жгучий перец',en:'Fiery pepper'},desc:{ru:'Хранит в себе огонь тысячи блюд.',en:'Holds the fire of a thousand dishes.'},flag:['#006847','#ffffff','#ce1126']},
+ in:{em:'\u2697\uFE0F',name:{ru:'Колба алхимика',en:"Alchemist's flask"},desc:{ru:'В ней рождаются ароматы всего Востока.',en:'Where all the aromas of the East are born.'},flag:['#ff9933','#ffffff','#138808']},
+ fr:{em:'\uD83D\uDC51',name:{ru:'Корона гурмана',en:"Gourmet's crown"},desc:{ru:'Венец того, кто покорил все кухни мира.',en:'The crown of one who mastered every cuisine.'},flag:['#0055a4','#ffffff','#ef4135']}
+};
+function finalIdx(ci){return CUISINES[ci].em.length-1}
+const SIZE=4;
+let cells,score,best,curCuisine,unlocked,won,over,lang,tileId,soundOn,vibroOn,prevState,tileEls,undoLeft,onbDone,xp,discovered,boostLeft,boostMode,clearLeft,items,justEarnedItem,totalScore,stats,movesThisGame,boostUsedThisGame,starsEarned,achievements,achState;
+function todayStr(){const d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();}
+function load(){best=+(localStorage.getItem('c2_best')||0);unlocked=+(localStorage.getItem('c2_unlocked')||0);curCuisine=+(localStorage.getItem('c2_cur')||0);lang=localStorage.getItem('c2_lang')||'ru';soundOn=localStorage.getItem('c2_sound')!=='0';vibroOn=localStorage.getItem('c2_vibro')!=='0';
+ onbDone=localStorage.getItem('c2_onb')==='1';
+ xp=+(localStorage.getItem('c2_xp')||0);boostMode=false;
+ try{discovered=JSON.parse(localStorage.getItem('c2_discovered')||'{}');}catch(e){discovered={};}
+ try{items=JSON.parse(localStorage.getItem('c2_items')||'[]');}catch(e){items=[];}
+ totalScore=+(localStorage.getItem('c2_total')||0);
+ try{stats=JSON.parse(localStorage.getItem('c2_stats')||'{}');}catch(e){stats={};}
+ if(!stats.games)stats.games=0;if(!stats.bestPer)stats.bestPer={};if(!stats.winsPer)stats.winsPer={};if(!stats.stars)stats.stars={};
+ try{achState=JSON.parse(localStorage.getItem('c2_ach')||'{}');}catch(e){achState={};}
+ if(!achState.unlocked)achState.unlocked=[];if(!achState.counters)achState.counters={};
+ movesThisGame=0;boostUsedThisGame=false;
+ const ud=localStorage.getItem('c2_undoDay'),today=todayStr();
+ const mc=1+rankFor(xp).idx;
+ if(ud===today){undoLeft=+(localStorage.getItem('c2_undoLeft')||0);boostLeft=+(localStorage.getItem('c2_boostLeft')||0);clearLeft=+(localStorage.getItem('c2_clearLeft')||0);}
+ else{undoLeft=mc;boostLeft=mc;clearLeft=mc;localStorage.setItem('c2_undoDay',today);localStorage.setItem('c2_undoLeft',String(mc));localStorage.setItem('c2_boostLeft',String(mc));localStorage.setItem('c2_clearLeft',String(mc));}
+ // синхронизируем уровень, чтобы updRank не начислял бонус повторно за уже учтённые уровни
+ localStorage.setItem('c2_lastLevel',String(rankFor(xp).idx));}
+function maxCharges(){return 1+rankFor(xp).idx;}
+function save(){localStorage.setItem('c2_best',best);localStorage.setItem('c2_unlocked',unlocked);localStorage.setItem('c2_cur',curCuisine);localStorage.setItem('c2_lang',lang);localStorage.setItem('c2_sound',soundOn?'1':'0');localStorage.setItem('c2_vibro',vibroOn?'1':'0');localStorage.setItem('c2_undoLeft',String(undoLeft));localStorage.setItem('c2_boostLeft',String(boostLeft));localStorage.setItem('c2_clearLeft',String(clearLeft));localStorage.setItem('c2_undoDay',todayStr());localStorage.setItem('c2_xp',String(xp));localStorage.setItem('c2_discovered',JSON.stringify(discovered));localStorage.setItem('c2_items',JSON.stringify(items));localStorage.setItem('c2_total',String(totalScore));localStorage.setItem('c2_stats',JSON.stringify(stats));localStorage.setItem('c2_ach',JSON.stringify(achState));}
+function discoverDish(ci,idx){const k=CUISINES[ci].key;if(!discovered[k])discovered[k]=[];if(!discovered[k].includes(idx)){discovered[k].push(idx);return true;}return false;}
+function isDiscovered(ci,idx){const k=CUISINES[ci].key;return discovered[k]&&discovered[k].includes(idx);}
+// сохранение/загрузка поля конкретной кухни
+function saveBoard(){const data={cells:cells.map(r=>r.map(c=>c?{id:c.id,val:c.val,x:c.x,y:c.y}:null)),score,tileId,won,over};
+ localStorage.setItem('c2_board_'+CUISINES[curCuisine].key,JSON.stringify(data));}
+function loadBoard(ci){const raw=localStorage.getItem('c2_board_'+CUISINES[ci].key);if(!raw)return null;try{return JSON.parse(raw);}catch(e){return null;}}
+function updUndoUI(){const badge=document.getElementById('undoBadge'),btn=document.getElementById('undoBtn');
+ badge.textContent=undoLeft;badge.style.display=undoLeft>0?'flex':'none';
+ btn.disabled=!(prevState&&undoLeft>0&&!won&&!over);}
+
+/* ---------- ЗВУК (Web Audio, глубокий мягкий «пунк») ---------- */
+let actx,lowpass;
+function ac(){if(!actx){actx=new (window.AudioContext||window.webkitAudioContext)();}return actx;}
+// мягкий перкуссионный «пунк»: низкая синусоида с быстрым питч-спадом + лоупас
+function punk(freq,vol,dur){if(!soundOn)return;try{const a=ac();const t=a.currentTime;
+ const o=a.createOscillator(),g=a.createGain(),f=a.createBiquadFilter();
+ o.type='sine';o.frequency.setValueAtTime(freq*1.6,t);o.frequency.exponentialRampToValueAtTime(freq,t+.06);
+ f.type='lowpass';f.frequency.setValueAtTime(900,t);f.Q.value=.7;
+ g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.008);g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+ o.connect(f);f.connect(g);g.connect(a.destination);o.start(t);o.stop(t+dur+.02);}catch(e){}}
+function tone(freq,vol,dur,type,when){if(!soundOn)return;try{const a=ac();const t=when||a.currentTime;
+ const o=a.createOscillator(),g=a.createGain(),f=a.createBiquadFilter();
+ o.type=type||'sine';o.frequency.setValueAtTime(freq,t);
+ f.type='lowpass';f.frequency.value=1600;
+ g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+ o.connect(f);f.connect(g);g.connect(a.destination);o.start(t);o.stop(t+dur+.02);}catch(e){}}
+function sndMerge(level){const base=90+level*14;punk(base,.32,.22);} // глубокий, теплеет вниз с уровнем... вверх с уровнем
+function sndMove(){punk(70,.08,.10);}
+function sndFinal(){punk(140,.34,.26);setTimeout(()=>tone(330,.16,.3,'sine'),90);}
+function sndWin(){[262,330,392,523].forEach((f,i)=>tone(f,.16,.5,'sine',ac().currentTime+i*.12));}
+function sndReward(){[392,523,659].forEach((f,i)=>tone(f,.14,.4,'triangle',ac().currentTime+i*.09));setTimeout(()=>tone(784,.12,.5,'sine'),280);}
+function sndLose(){[196,165,131].forEach((f,i)=>tone(f,.15,.4,'sine',ac().currentTime+i*.14));}
+
+/* ---------- ВИБРО ---------- */
+function haptic(kind){
+ if(!vibroOn)return;
+ const tg=window.Telegram&&window.Telegram.WebApp&&window.Telegram.WebApp.HapticFeedback;
+ if(tg){try{if(kind==='light')tg.impactOccurred('light');else if(kind==='medium')tg.impactOccurred('medium');else if(kind==='heavy')tg.impactOccurred('heavy');else if(kind==='success')tg.notificationOccurred('success');else if(kind==='error')tg.notificationOccurred('error');return;}catch(e){}}
+ if(navigator.vibrate){const m={light:8,medium:18,heavy:35,success:[20,40,30],error:[40,30,40]};navigator.vibrate(m[kind]||10);}
+}
+
+function maxTileVal(){let m=0;for(let y=0;y<SIZE;y++)for(let x=0;x<SIZE;x++)if(cells[y][x]&&cells[y][x].val>m)m=cells[y][x].val;return m;}
+function updProgress(){const goal=finalIdx(curCuisine)+1;const cur=Math.min(maxTileVal(),goal);
+ const pct=Math.round((cur/goal)*100);
+ document.getElementById('progfill').style.width=pct+'%';}
+function toast(msg,dur){const h=document.getElementById('hint');if(!h)return;h.textContent=msg;h.classList.add('show');clearTimeout(h._t);h._t=setTimeout(()=>h.classList.remove('show'),dur||1600);}
+let achToastTimer;
+function showAchToast(a){const el=document.getElementById('achToast');if(!el)return;
+ document.getElementById('atEm').textContent=a.em;
+ document.getElementById('atLabel').textContent=lang==='ru'?'Достижение!':'Achievement!';
+ document.getElementById('atName').textContent=a.name[lang];
+ el.classList.add('show');sndReward();haptic('success');clearTimeout(achToastTimer);achToastTimer=setTimeout(()=>el.classList.remove('show'),3200);}
+function applyLang(){const t=T[lang];document.getElementById('lblScore').textContent=t.score;document.getElementById('lblBest').textContent=t.best;document.documentElement.lang=lang;
+ const ot=document.getElementById('onbText');if(ot)ot.textContent=t.onb;const ob=document.getElementById('onbBtn');if(ob)ob.textContent=t.onbBtn;
+ if(typeof updRank==='function')updRank();}
+function applyTheme(){const c=CUISINES[curCuisine],fi=finalIdx(curCuisine),s=document.body.style;
+ s.setProperty('--bg',c.bg);s.setProperty('--boardbg',c.boardbg);s.setProperty('--accent',c.accent);s.setProperty('--accentGlow',c.accent+'22');
+ const tf=document.getElementById('tabFlag');if(tf)tf.textContent=c.flag;const tl=document.getElementById('tabLabel');if(tl)tl.textContent=lang==='ru'?'КУХНИ':'CUISINES';
+ const tab=document.getElementById('cuisineTab');if(tab){tab.style.setProperty('--accent',c.accent);}}
+
+function emptyList(){const r=[];for(let y=0;y<SIZE;y++)for(let x=0;x<SIZE;x++)if(!cells[y][x])r.push({x,y});return r;}
+function spawn(){const e=emptyList();if(!e.length)return null;const c=e[Math.random()*e.length|0];const v=Math.random()<0.9?1:2;cells[c.y][c.x]={id:++tileId,val:v,x:c.x,y:c.y,isNew:true};if(discoverDish(curCuisine,v-1)){updBookBadge&&updBookBadge();}return cells[c.y][c.x];}
+function snapshot(){return JSON.stringify({cells:cells.map(r=>r.map(c=>c?{id:c.id,val:c.val,x:c.x,y:c.y}:null)),score});}
+function newGame(forceFresh){cells=Array.from({length:SIZE},()=>Array(SIZE).fill(null));score=0;won=false;over=false;tileId=0;prevState=null;
+ document.getElementById('tiles').innerHTML='';tileEls={};
+ const saved=forceFresh?null:loadBoard(curCuisine);
+ let startedFresh=false;
+ if(saved&&saved.cells){
+  cells=saved.cells.map(r=>r.map(c=>c?{id:c.id,val:c.val,x:c.x,y:c.y}:null));
+  score=saved.score||0;tileId=saved.tileId||0;won=!!saved.won;over=!!saved.over;
+  if(won||over){cells=Array.from({length:SIZE},()=>Array(SIZE).fill(null));score=0;won=false;over=false;tileId=0;spawn();spawn();startedFresh=true;}
+ }else{spawn();spawn();startedFresh=true;}
+ if(startedFresh&&stats){stats.games=(stats.games||0)+1;save();}
+ if(startedFresh){movesThisGame=0;boostUsedThisGame=false;}
+ updUndoUI();applyLang();applyTheme();fullRender();hideOverlay();saveBoard();if(typeof updBoostUI==='function')updBoostUI();}
+function tilePx(){const layer=document.getElementById('tiles');const gap=9;const size=(layer.clientWidth-gap*3)/4;return{gap,size};}
+
+/* строим/двигаем плитки по их .x/.y */
+function fullRender(){
+ document.getElementById('score').textContent=score;document.getElementById('best').textContent=best;
+ const layer=document.getElementById('tiles');
+ const liveIds=new Set();
+ for(let y=0;y<SIZE;y++)for(let x=0;x<SIZE;x++){const c=cells[y][x];if(c)liveIds.add(c.id);}
+ for(const id in tileEls){if(!liveIds.has(+id)){tileEls[id].remove();delete tileEls[id];}}
+ for(let y=0;y<SIZE;y++)for(let x=0;x<SIZE;x++){const c=cells[y][x];if(!c)continue;placeTile(c);}
+ updProgress();
+}
+function placeTile(c){
+ const cu=CUISINES[curCuisine],fi=finalIdx(curCuisine);const{gap,size}=tilePx();const idx=c.val-1;
+ let el=tileEls[c.id];
+ if(!el){el=document.createElement('div');el.className='tile';el.style.width=size+'px';el.style.height=size+'px';
+  el.style.left=(c.x*(size+gap))+'px';el.style.top=(c.y*(size+gap))+'px';
+  layer.appendChild(el);tileEls[c.id]=el;if(c.isNew){el.classList.add('spawn');c.isNew=false;}}
+ el.className='tile'+(idx===fi?' isfinal':'');
+ el.style.width=size+'px';el.style.height=size+'px';
+ el.style.setProperty('--tilebg',TILE_TONES[Math.min(idx,TILE_TONES.length-1)]);
+ el.style.left=(c.x*(size+gap))+'px';el.style.top=(c.y*(size+gap))+'px';
+ el.innerHTML=`<span class="em">${cu.em[idx]}</span><span class="nm">${cu.names[lang][idx]}</span>`;
+}
+const layer=document.getElementById('tiles');
+
+function getLineCoords(dir,i){const o=[];for(let j=0;j<SIZE;j++){let x,y;if(dir==='left'){x=j;y=i}else if(dir==='right'){x=SIZE-1-j;y=i}else if(dir==='up'){x=i;y=j}else{x=i;y=SIZE-1-j}o.push({x,y});}return o;}
+
+function move(dir){
+ if(over||won)return;
+ const maxv=finalIdx(curCuisine)+1;
+ const beforeSnap=snapshot();
+ let moved=false,gained=0,mergedLevels=[],mergedFinal=false;
+ const removed=[]; // плитки, которые сольются и исчезнут
+ for(let i=0;i<SIZE;i++){
+  const coords=getLineCoords(dir,i);
+  const line=coords.map(p=>cells[p.y][p.x]);
+  const tiles=line.filter(c=>c);
+  let res=[];
+  for(let k=0;k<tiles.length;k++){
+   if(k<tiles.length-1&&tiles[k].val===tiles[k+1].val&&tiles[k].val<maxv){
+    const keep=tiles[k],gone=tiles[k+1];
+    keep.val++;keep.mergedThis=true;gone.mergeInto=keep; // gone уедет в keep и удалится
+    res.push(keep);removed.push(gone);
+    gained+=Math.pow(2,keep.val);mergedLevels.push(keep.val);if(keep.val===maxv)mergedFinal=true;
+    k++;
+   }else res.push(tiles[k]);
+  }
+  // расставляем результат по координатам линии
+  for(let j=0;j<coords.length;j++){
+   const p=coords[j];
+   if(j<res.length){
+    const t=res[j];
+    if(t.x!==p.x||t.y!==p.y)moved=true;
+    t.x=p.x;t.y=p.y;cells[p.y][p.x]=t;
+   }else cells[p.y][p.x]=null;
+  }
+  // плитки которые слились — их координата = координата keep (едут туда же)
+ }
+ // отметить moved если были слияния
+ if(removed.length)moved=true;
+ if(!moved){return;}
+
+ prevState=beforeSnap;updUndoUI();
+
+ // 1) анимируем движение: обновляем left/top всех плиток (включая уезжающие removed -> в позицию keep)
+ const{gap,size}=tilePx();
+ // уезжающие плитки двигаем к keep
+ removed.forEach(g=>{const k=g.mergeInto;const el=tileEls[g.id];if(el){el.style.left=(k.x*(size+gap))+'px';el.style.top=(k.y*(size+gap))+'px';el.style.zIndex='1';}});
+ // оставшиеся плитки на местах
+ for(let y=0;y<SIZE;y++)for(let x=0;x<SIZE;x++){const c=cells[y][x];if(c){const el=tileEls[c.id];if(el){el.style.left=(c.x*(size+gap))+'px';el.style.top=(c.y*(size+gap))+'px';}}}
+
+ sndMove();haptic('light');
+ movesThisGame++;
+
+ // 2) после завершения движения (130мс): удаляем removed, обновляем содержимое слитых, pop
+ setTimeout(()=>{
+  removed.forEach(g=>{const el=tileEls[g.id];if(el){el.remove();delete tileEls[g.id];}});
+  // обновить визуал слитых плиток (новый уровень) + pop
+  for(let y=0;y<SIZE;y++)for(let x=0;x<SIZE;x++){const c=cells[y][x];if(c&&c.mergedThis){placeTile(c);const el=tileEls[c.id];if(el){el.classList.remove('pop');void el.offsetWidth;el.classList.add('pop');}c.mergedThis=false;}}
+  // звук/вибро слияний
+  let combo=mergedLevels.length;
+  if(mergedLevels.length){const mx=Math.max(...mergedLevels);sndMerge(mx);haptic(mergedFinal?'heavy':'medium');
+   // XP за слияния + открытие блюд в коллекции
+   let newDish=false;
+   mergedLevels.forEach(lv=>{xp+=lv*2;if(discoverDish(curCuisine,lv-1))newDish=true;});
+   updRank();if(newDish)updBookBadge();
+   checkAchievements({merged:true,combo:combo});
+  }
+  if(mergedFinal){document.getElementById('boardWrap').classList.add('shake');setTimeout(()=>document.getElementById('boardWrap').classList.remove('shake'),360);sndFinal();flashFinalTile();}
+  score+=gained;totalScore+=gained;document.getElementById('score').textContent=score;document.getElementById('best').textContent=best;
+  const ns=spawn();if(ns)placeTile(ns);
+  updProgress();
+  save();saveBoard();checkState(mergedFinal);
+ },130);
+}
+// позиция (px) для всплывающих очков — берём первую слитую плитку
+function res2pos(removed){const{gap,size}=tilePx();if(removed.length){const k=removed[0].mergeInto;return{x:k.x*(size+gap)+size/2,y:k.y*(size+gap)+size/2};}return{x:size*2,y:size*2};}
+function floatScore(val,pos){const layer=document.getElementById('tiles');if(!layer)return;const el=document.createElement('div');el.className='float-score';el.textContent='+'+val;el.style.left=pos.x+'px';el.style.top=pos.y+'px';layer.appendChild(el);setTimeout(()=>el.remove(),900);}
+let comboTimer;
+function showCombo(n){const el=document.getElementById('comboBadge');if(!el)return;el.textContent=(lang==='ru'?'Комбо ×':'Combo ×')+n;el.classList.remove('show');void el.offsetWidth;el.classList.add('show');clearTimeout(comboTimer);comboTimer=setTimeout(()=>el.classList.remove('show'),1100);}
+function flashFinalTile(){for(let y=0;y<SIZE;y++)for(let x=0;x<SIZE;x++){const c=cells[y][x];if(c&&c.val===finalIdx(curCuisine)+1){const el=tileEls[c.id];if(el){el.classList.add('finalflash');setTimeout(()=>el.classList.remove('finalflash'),900);}}}}
+
+function canMove(){for(let y=0;y<SIZE;y++)for(let x=0;x<SIZE;x++){const c=cells[y][x];if(!c)return true;if(x<SIZE-1&&cells[y][x+1]&&cells[y][x+1].val===c.val)return true;if(y<SIZE-1&&cells[y+1][x]&&cells[y+1][x].val===c.val)return true;}return false;}
+function checkState(mf){const goal=finalIdx(curCuisine)+1;let reached=false;
+ for(let y=0;y<SIZE;y++)for(let x=0;x<SIZE;x++)if(cells[y][x]&&cells[y][x].val>=goal)reached=true;
+ if(reached&&!won){won=true;if(score>best){best=score;document.getElementById('best').textContent=best;}const k0=CUISINES[curCuisine].key;if(!stats.bestPer[k0]||score>stats.bestPer[k0])stats.bestPer[k0]=score;stats.winsPer[k0]=(stats.winsPer[k0]||0)+1;
+  const stars=calcStars(curCuisine,movesThisGame,boostUsedThisGame);starsEarned=stars;if(!stats.stars[k0]||stars>stats.stars[k0])stats.stars[k0]=stars;
+  xp+=100;updRank();const ckey=CUISINES[curCuisine].key;justEarnedItem=!items.includes(ckey);if(justEarnedItem)items.push(ckey);if(curCuisine===unlocked&&curCuisine<CUISINES.length-1)unlocked++;localStorage.removeItem('c2_board_'+CUISINES[curCuisine].key);save();
+  checkAchievements({wonNoBoost:!boostUsedThisGame,wonKey:k0,gameScore:score});
+  confetti();sndWin();haptic('success');setTimeout(showWin,560);return;}
+ if(!canMove()){over=true;if(score>best){best=score;document.getElementById('best').textContent=best;}const k1=CUISINES[curCuisine].key;if(!stats.bestPer[k1]||score>stats.bestPer[k1])stats.bestPer[k1]=score;localStorage.removeItem('c2_board_'+CUISINES[curCuisine].key);save();sndLose();haptic('error');
+  const bw=document.getElementById('boardWrap');bw.classList.add('gameover-shake');setTimeout(()=>bw.classList.remove('gameover-shake'),500);
+  setTimeout(showLose,620);}}
+
+function undo(){if(!prevState||over||won||undoLeft<=0)return;const s=JSON.parse(prevState);
+ cells=s.cells.map(r=>r.map(c=>c?{id:c.id,val:c.val,x:c.x,y:c.y}:null));score=s.score;prevState=null;
+ undoLeft--;boostUsedThisGame=true;save();updUndoUI();
+ document.getElementById('tiles').innerHTML='';tileEls={};fullRender();saveBoard();haptic('light');}
+
+function buildBoard(){const b=document.getElementById('board');b.innerHTML='';for(let i=0;i<16;i++){const c=document.createElement('div');c.className='cell';b.appendChild(c);}}
+function switchCuisine(i){saveBoard();const fade=document.getElementById('transFade');
+ const c=CUISINES[i];fade.style.background=c.bg;fade.classList.add('on');
+ setTimeout(()=>{curCuisine=i;save();newGame();buildMenu();
+  setTimeout(()=>fade.classList.remove('on'),120);},460);}
+function buildMenu(){buildDrawer();}
+function buildDrawer(){const list=document.getElementById('drawerList');if(!list)return;list.innerHTML='';
+ const dt=document.getElementById('drawerTitle');if(dt)dt.textContent=lang==='ru'?'Кухни':'Cuisines';
+ CUISINES.forEach((c,i)=>{const locked=i>unlocked,fi=finalIdx(i);
+  // прогресс по кухне: открыто блюд / всего
+  const k=c.key;const discN=(discovered[k]||[]).length;const total=c.em.length;
+  const isDone=discN>=total;
+  const card=document.createElement('div');
+  card.className='dr-card'+(locked?' locked':'')+(i===curCuisine?' active':'');
+  card.style.setProperty('--cuaccent',c.accent);
+  const sub=locked?(lang==='ru'?'Откроется позже':'Locked')
+    :(lang==='ru'?('Открыто '+discN+'/'+total):('Found '+discN+'/'+total));
+  const earned=stats.stars&&stats.stars[k]||0;
+  const starsHtml=(!locked&&earned>0)?`<span class="dr-stars">${'⭐'.repeat(earned)}${'<span style="opacity:.25">⭐</span>'.repeat(3-earned)}</span>`:'';
+  card.innerHTML=`<span class="dr-flag">${locked?'🔒':c.flag}</span>`+
+    `<div class="dr-info"><div class="dr-name">${c.name[lang]}</div><div class="dr-sub">${sub}</div></div>`+
+    `<span class="dr-goal">${c.em[fi]}</span>`+
+    starsHtml+
+    (!locked?`<span class="dr-bar" style="width:${Math.round(discN/total*100)}%"></span>`:'');
+  if(!locked)card.onclick=()=>{closeDrawer();if(i!==curCuisine)setTimeout(()=>switchCuisine(i),180);};
+  list.appendChild(card);
+ });
+ // заглушка: будущая кухня в разработке
+ const soon=document.createElement('div');soon.className='dr-card locked dr-soon';
+ soon.innerHTML=`<span class="dr-flag">🚧</span><div class="dr-info"><div class="dr-name">${lang==='ru'?'Новая кухня':'New cuisine'}</div><div class="dr-sub">${lang==='ru'?'Уже готовится…':'Coming soon…'}</div></div><span class="dr-goal">❓</span>`;
+ list.appendChild(soon);}
+function openDrawer(){buildDrawer();document.getElementById('cuisineDrawer').classList.add('show');document.getElementById('drawerBackdrop').classList.add('show');document.getElementById('cuisineTab').classList.add('hidden');haptic('light');}
+function closeDrawer(){document.getElementById('cuisineDrawer').classList.remove('show');document.getElementById('drawerBackdrop').classList.remove('show');document.getElementById('cuisineTab').classList.remove('hidden');}
+function showWin(){const ov=document.getElementById('overlay');ov.classList.add('show');const t=T[lang],c=CUISINES[curCuisine],fi=finalIdx(curCuisine);
+ const next=curCuisine<CUISINES.length-1?CUISINES[curCuisine+1]:null;
+ document.getElementById('ovIcon').textContent=c.em[fi];document.getElementById('ovTitle').textContent='\uD83C\uDF89 '+t.win;
+ let txt=`${t.collected} ${c.names[lang][fi]}!`;if(next)txt+=` ${t.unlocked} ${next.name[lang]} ${t.cuisine} ${next.flag}`;else txt+=' '+t.last;
+ document.getElementById('ovText').textContent=txt;const btns=document.getElementById('ovBtns');btns.innerHTML='';
+ // звёзды за прохождение
+ let starsEl=document.getElementById('ovStars');if(!starsEl){starsEl=document.createElement('div');starsEl.id='ovStars';starsEl.className='stars-row';document.getElementById('ovTitle').after(starsEl);}
+ const st=starsEarned||1;starsEl.innerHTML='';
+ for(let i=1;i<=3;i++){const s=document.createElement('span');s.className='st'+(i<=st?' on':'');s.textContent='⭐';starsEl.appendChild(s);}
+ // награда-предмет (только при первом прохождении)
+ let rew=document.getElementById('ovReward');if(!rew){rew=document.createElement('div');rew.id='ovReward';rew.className='ov-reward';document.getElementById('ovText').after(rew);}
+ if(justEarnedItem){const it=ITEMS[c.key];rew.style.display='flex';rew.style.setProperty('--accent',c.accent);
+  const fbg=it.flag?`<span class="ovr-flagbg" style="background:linear-gradient(135deg,${it.flag[0]} 0%,${it.flag[1]} 50%,${it.flag[2]} 100%)"></span>`:'';
+  rew.innerHTML=`${fbg}<div class="ovr-label">${lang==='ru'?'Новый предмет!':'New item!'}</div><div class="ovr-em">${it.em}</div><div class="ovr-name">${it.name[lang]}</div><div class="ovr-desc">«${it.desc[lang]}»</div>`;
+  justEarnedItem=false;}
+ else rew.style.display='none';
+ if(next){const b1=document.createElement('button');b1.className='btn';b1.textContent=`${t.goTo} ${next.name[lang]} ${next.flag}`;b1.onclick=()=>{hideOverlay();switchCuisine(curCuisine+1);};btns.appendChild(b1);}
+ const b2=document.createElement('button');b2.className='btn ghost';b2.textContent=t.playAgain;b2.onclick=()=>newGame(true);btns.appendChild(b2);buildMenu();}
+const ENCOURAGE={ru:[
+ 'Даже лучший шеф сжигал свой первый соус. Продолжай.',
+ 'Поражение — это просто рецепт, который ещё не дописан.',
+ 'Не бойся начать сначала. Тесто не помнит прошлых ошибок.',
+ 'Каждая проигранная партия учит руку держать нож увереннее.',
+ 'Великие блюда рождаются из десятка испорченных.',
+ 'Спокойствие. Огонь, который погас, всегда можно разжечь снова.',
+ 'Терпение — главный ингредиент. Остальное приложится.',
+ 'Не результат красит повара, а готовность встать к плите опять.'
+],en:[
+ 'Even the best chef burned their first sauce. Keep going.',
+ 'A loss is just a recipe you haven\'t finished writing.',
+ 'Don\'t fear starting over. Dough remembers no mistakes.',
+ 'Every lost game teaches your hand to hold the knife.',
+ 'Great dishes are born from a dozen ruined ones.',
+ 'Stay calm. A fire gone out can always be lit again.',
+ 'Patience is the main ingredient. The rest will follow.',
+ 'A cook is made not by the result, but by returning to the stove.'
+]};
+function showLose(){const ov=document.getElementById('overlay');ov.classList.add('show');const t=T[lang],c=CUISINES[curCuisine];
+ document.getElementById('ovIcon').textContent=c.em[0];document.getElementById('ovTitle').textContent='\uD83D\uDE14 '+t.lose;
+ const pool=ENCOURAGE[lang];const quote=pool[Math.random()*pool.length|0];
+ document.getElementById('ovText').textContent=quote;
+ // убираем звёзды если остались от победы
+ const se=document.getElementById('ovStars');if(se)se.innerHTML='';
+ const rw=document.getElementById('ovReward');if(rw)rw.style.display='none';
+ const btns=document.getElementById('ovBtns');btns.innerHTML='';const b=document.createElement('button');b.className='btn';b.textContent=t.retry;b.onclick=()=>newGame(true);btns.appendChild(b);}
+function hideOverlay(){document.getElementById('overlay').classList.remove('show');}
+function confetti(){const wrap=document.querySelector('.board-wrap');const c=CUISINES[curCuisine];const cols=[c.accent,'#fff','rgba(255,255,255,.6)'];
+ for(let i=0;i<40;i++){const p=document.createElement('div');p.className='confetti';p.style.background=cols[i%cols.length];
+  p.style.left=(20+Math.random()*60)+'%';p.style.top='42%';wrap.appendChild(p);
+  const ang=Math.random()*Math.PI*2,dist=80+Math.random()*170,dur=600+Math.random()*450;
+  p.animate([{transform:'translate(0,0) rotate(0)',opacity:1},{transform:`translate(${Math.cos(ang)*dist}px,${Math.sin(ang)*dist+115}px) rotate(${Math.random()*720}deg)`,opacity:0}],{duration:dur,easing:'cubic-bezier(.2,.6,.4,1)'}).onfinish=()=>p.remove();}}
+
+/* ---------- ШЕФ / XP ---------- */
+function updRank(){const{rank,idx}=rankFor(xp);const nx=nextRank(idx);
+ // повышение уровня → +1 заряд каждому бустеру (на сегодня и далее)
+ const stored=+(localStorage.getItem('c2_lastLevel')||0);
+ if(idx>stored){const gain=idx-stored;undoLeft+=gain;boostLeft+=gain;clearLeft+=gain;localStorage.setItem('c2_lastLevel',String(idx));save();
+  if(typeof updUndoUI==='function')updUndoUI();if(typeof updBoostUI==='function')updBoostUI();
+  if(typeof showLevelUp==='function')showLevelUp(rank);
+  if(typeof checkAchievements==='function')checkAchievements({});}
+ else if(idx<stored){localStorage.setItem('c2_lastLevel',String(idx));}
+ const cb=document.getElementById('chefBtn');if(cb){const tn=[...cb.childNodes].find(n=>n.nodeType===3);if(tn)tn.textContent=rank.em;else cb.insertBefore(document.createTextNode(rank.em),cb.firstChild);}
+ let pct=100;if(nx){const span=nx.xp-rank.xp;pct=Math.round(((xp-rank.xp)/span)*100);}
+ // экран профиля (если открыт/существует)
+ const be=document.getElementById('chefBigEm');if(be){be.textContent=rank.em;
+  let bdg=document.getElementById('chefBadge');if(!bdg){bdg=document.createElement('span');bdg.id='chefBadge';bdg.className='chef-badge';be.parentNode.appendChild(bdg);}
+  bdg.textContent=rank.badge||'';bdg.style.display=rank.badge?'flex':'none';
+  document.getElementById('chefBigRank').textContent=rank[lang];
+  document.getElementById('chefBigFill').style.width=Math.max(2,Math.min(100,pct))+'%';
+  document.getElementById('chefBigXp').textContent=xp+' XP';
+  document.getElementById('chefNext').textContent=nx?((lang==='ru'?'До звания ':'To ')+nx[lang]+': '+(nx.xp-xp)+' XP'):(lang==='ru'?'Максимальное звание!':'Max rank!');}}
+function buildAchievements(){const cnt=document.getElementById('chefAchCount');if(cnt)cnt.textContent=achState.unlocked.length+'/'+ACHIEVEMENTS.length;}
+function openAch(){const sc=document.getElementById('achScreen');sc.classList.add('show');
+ document.getElementById('achScreenTitle').textContent=lang==='ru'?'Достижения':'Achievements';
+ document.getElementById('achScreenProg').textContent=achState.unlocked.length+' / '+ACHIEVEMENTS.length;
+ const body=document.getElementById('achScreenBody');body.innerHTML='';
+ ACHIEVEMENTS.forEach(a=>{const got=hasAch(a.id);const it=document.createElement('div');
+  it.className='ach-item'+(got?' got':'');
+  it.innerHTML=`<span class="ai-em">${a.em}</span><div><div class="ai-name">${a.name[lang]}</div><div class="ai-desc">${a.desc[lang]}</div></div>${got?'<span class="ai-check">✓</span>':'<span class="ai-check" style="opacity:.3">🔒</span>'}`;
+  body.appendChild(it);});
+ haptic('light');}
+function closeAch(){document.getElementById('achScreen').classList.remove('show');}
+function buildStats(){const rows=document.getElementById('statsRows');if(!rows)return;
+ document.getElementById('statsTitle').textContent=lang==='ru'?'Статистика':'Statistics';
+ const totalWins=Object.values(stats.winsPer||{}).reduce((a,b)=>a+b,0);
+ let html=`<div class="stat-big">`+
+  `<div class="sb-cell"><div class="sb-val">${stats.games||0}</div><div class="sb-lbl">${lang==='ru'?'Партий':'Games'}</div></div>`+
+  `<div class="sb-cell"><div class="sb-val">${totalWins}</div><div class="sb-lbl">${lang==='ru'?'Побед':'Wins'}</div></div>`+
+  `<div class="sb-cell"><div class="sb-val">${(totalScore||0).toLocaleString()}</div><div class="sb-lbl">${lang==='ru'?'Всего очков':'Total pts'}</div></div>`+
+  `</div><div class="stats-divider"></div>`;
+ CUISINES.forEach((c,i)=>{const locked=i>unlocked;const bp=stats.bestPer&&stats.bestPer[c.key]||0;const w=stats.winsPer&&stats.winsPer[c.key]||0;
+  html+=`<div class="stat-row"><span class="sr-flag">${locked?'🔒':c.flag}</span><span class="sr-label">${c.name[lang]}</span>`+
+   (locked?`<span class="sr-wins">—</span>`:`<span class="sr-val">${bp.toLocaleString()}</span><span class="sr-wins" style="margin-left:8px">${w}✓</span>`)+`</div>`;
+ });
+ rows.innerHTML=html;}
+function buildInventory(){const grid=document.getElementById('invGrid');if(!grid)return;grid.innerHTML='';
+ document.getElementById('invTitle').textContent=lang==='ru'?'Инвентарь':'Inventory';
+ document.getElementById('invCount').textContent=items.length+'/6';
+ CUISINES.forEach((c)=>{const owned=items.includes(c.key);const it=ITEMS[c.key];
+  const slot=document.createElement('div');
+  if(owned){slot.className='inv-slot filled';
+   const f=it.flag;
+   slot.innerHTML=`<span class="it-flagbg" style="background:linear-gradient(135deg,${f[0]} 0%,${f[1]} 50%,${f[2]} 100%)"></span><span class="it-em">${it.em}</span>`;
+   slot.style.setProperty('--accent',c.accent);
+   slot.onclick=()=>showItem(it,c.accent);}
+  else{slot.className='inv-slot empty';slot.innerHTML='🔒';}
+  grid.appendChild(slot);});}
+let itemPopTimer;
+function showLevelUp(rank){const pop=document.getElementById('itemPop');if(!pop)return;
+ const fb=document.getElementById('ipFlag');if(fb)fb.style.display='none';
+ const{idx}=rankFor(xp);pop.style.setProperty('--accent',CUISINES[curCuisine].accent);
+ document.getElementById('ipEm').textContent=rank.em;
+ document.getElementById('ipName').textContent=(lang==='ru'?'Новое звание: ':'New rank: ')+rank[lang];
+ document.getElementById('ipDesc').textContent=(lang==='ru'?('+1 заряд каждому бустеру в день (теперь '+(1+idx)+')'):('+1 charge to each booster per day (now '+(1+idx)+')'));
+ pop.classList.add('show');sndReward();haptic('success');clearTimeout(itemPopTimer);itemPopTimer=setTimeout(()=>pop.classList.remove('show'),3500);}
+function showItem(it,accent){const pop=document.getElementById('itemPop');pop.style.setProperty('--accent',accent);
+ let fb=document.getElementById('ipFlag');if(!fb){fb=document.createElement('span');fb.id='ipFlag';fb.className='ip-flagbg';pop.insertBefore(fb,pop.firstChild);}
+ if(it.flag){fb.style.display='block';fb.style.background=`linear-gradient(135deg,${it.flag[0]} 0%,${it.flag[1]} 50%,${it.flag[2]} 100%)`;}else fb.style.display='none';
+ document.getElementById('ipEm').textContent=it.em;document.getElementById('ipName').textContent=it.name[lang];document.getElementById('ipDesc').textContent='«'+it.desc[lang]+'»';
+ pop.classList.add('show');haptic('light');clearTimeout(itemPopTimer);itemPopTimer=setTimeout(()=>pop.classList.remove('show'),3000);}
+function openChef(){document.getElementById('chefScreen').classList.add('show');updRank();buildInventory();buildStats();buildAchievements();
+ const lvlIdx=rankFor(xp).idx;const cn=document.getElementById('chefNext');
+ let cinfo=document.getElementById('chefCharges');if(!cinfo){cinfo=document.createElement('div');cinfo.id='chefCharges';cinfo.className='chef-charges';cn.parentNode.appendChild(cinfo);}
+ cinfo.innerHTML=(lang==='ru'?'🎟️ Зарядов бустеров в день: ':'🎟️ Booster charges per day: ')+'<b>'+(1+lvlIdx)+'</b>';
+ document.getElementById('chefTitle').textContent=(lang==='ru'?'Профиль шефа':'Chef profile');
+ document.getElementById('openBookLbl').textContent=T[lang].book;
+ document.getElementById('chefBookCount').textContent=discoveredCount()+'/'+totalDishes();
+ // список званий
+ const rl=document.getElementById('ranksList');rl.innerHTML='';const{idx}=rankFor(xp);
+ RANKS.forEach((r,i)=>{const row=document.createElement('div');
+  row.className='rank-row'+(i===idx?' cur':'')+(i<idx?' done':'');
+  row.innerHTML=`<span class="rr-em">${r.em}${r.badge?'<span class="rr-badge">'+r.badge+'</span>':''}</span><span class="rr-name">${r[lang]}</span><span class="rr-xp">${r.xp} XP</span>`;
+  rl.appendChild(row);});
+ haptic('light');}
+function closeChef(){document.getElementById('chefScreen').classList.remove('show');const ip=document.getElementById('itemPop');if(ip)ip.classList.remove('show');}
+
+/* ---------- БУСТЕР ---------- */
+function updBoostUI(){const btn=document.getElementById('boostBtn'),badge=document.getElementById('boostBadge');
+ badge.textContent=boostLeft;badge.style.display=boostLeft>0?'flex':'none';
+ btn.disabled=(boostLeft<=0&&!boostMode)||won||over;
+ updClearUI();}
+function updClearUI(){const btn=document.getElementById('clearBtn'),badge=document.getElementById('clearBadge');
+ if(!btn)return;badge.textContent=clearLeft;badge.style.display=clearLeft>0?'flex':'none';
+ btn.disabled=clearLeft<=0||won||over;}
+function doClear(){
+ if(won||over)return;
+ if(clearLeft<=0){toast(T[lang].noClear,1800);haptic('error');return;}
+ // собрать плитки 1-2 уровня
+ const toRemove=[];
+ for(let y=0;y<SIZE;y++)for(let x=0;x<SIZE;x++){const c=cells[y][x];if(c&&c.val<=2)toRemove.push(c);}
+ if(!toRemove.length){toast(T[lang].clearEmpty,1500);haptic('error');return;}
+ // сохранить состояние для undo
+ prevState=snapshot();updUndoUI();
+ clearLeft--;boostUsedThisGame=true;save();
+ // анимация исчезновения
+ toRemove.forEach(c=>{const el=tileEls[c.id];if(el)el.classList.add('clearing');cells[c.y][c.x]=null;});
+ sndMerge(2);haptic('medium');
+ setTimeout(()=>{
+  toRemove.forEach(c=>{const el=tileEls[c.id];if(el){el.remove();delete tileEls[c.id];}});
+  fullRender();updProgress();updClearUI();save();saveBoard();
+  toast(T[lang].clearDone,1200);
+  checkState(false);
+ },320);}
+function toggleBoost(){
+ if(won||over)return;
+ if(boostLeft<=0&&!boostMode){toast(T[lang].noBoost,1800);haptic('error');return;}
+ if(!localStorage.getItem('c2_seenBoost')){localStorage.setItem('c2_seenBoost','1');}
+ boostMode=!boostMode;
+ const bw=document.getElementById('boardWrap'),btn=document.getElementById('boostBtn'),bh=document.getElementById('boostHint');
+ bw.classList.toggle('boostmode',boostMode);btn.classList.toggle('armed',boostMode);
+ if(boostMode){bh.textContent=T[lang].boostArm;bh.classList.add('show');haptic('light');}
+ else bh.classList.remove('show');}
+function applyBoostTo(cell){
+ const maxv=finalIdx(curCuisine)+1;if(cell.val>=maxv){return;}
+ cell.val++;boostLeft--;boostUsedThisGame=true;boostMode=false;
+ document.getElementById('boardWrap').classList.remove('boostmode');
+ document.getElementById('boostBtn').classList.remove('armed');
+ document.getElementById('boostHint').classList.remove('show');
+ placeTile(cell);const el=tileEls[cell.id];if(el){el.classList.remove('pop');void el.offsetWidth;el.classList.add('pop');}
+ xp+=cell.val*2;updRank();
+ if(discoverDish(curCuisine,cell.val-1))updBookBadge();
+ sndMerge(cell.val);haptic('medium');
+ updProgress();updBoostUI();save();saveBoard();
+ setTimeout(()=>checkState(cell.val>=maxv),180);}
+
+/* клик по плитке в режиме бустера */
+document.getElementById('tiles').addEventListener('click',e=>{
+ if(!boostMode)return;const el=e.target.closest('.tile');if(!el)return;
+ // найти cell по элементу
+ let found=null;for(const id in tileEls){if(tileEls[id]===el){for(let y=0;y<SIZE;y++)for(let x=0;x<SIZE;x++){if(cells[y][x]&&cells[y][x].id===+id)found=cells[y][x];}}}
+ if(found)applyBoostTo(found);
+});
+
+/* ---------- КОЛЛЕКЦИЯ ---------- */
+function totalDishes(){return CUISINES.reduce((s,c)=>s+c.em.length,0);}
+function discoveredCount(){let n=0;CUISINES.forEach((c,ci)=>{c.em.forEach((_,i)=>{if(isDiscovered(ci,i))n++;});});return n;}
+function updBookBadge(){const b=document.getElementById('bookBadge');if(!b)return;
+ // показать точку если есть неоткрытые (намёк что есть что коллекционировать) — лучше скрывать когда всё открыто
+ b.style.display=discoveredCount()<totalDishes()?'block':'none';}
+function openBook(){const sc=document.getElementById('bookScreen');sc.classList.add('show');
+ document.getElementById('bookTitle').textContent=T[lang].book;
+ document.getElementById('bookProg').textContent=discoveredCount()+' / '+totalDishes();
+ const body=document.getElementById('bookBody');body.innerHTML='';
+ CUISINES.forEach((c,ci)=>{
+  const sec=document.createElement('div');
+  const locked=ci>unlocked;
+  let cards='';
+  c.em.forEach((em,i)=>{const disc=isDiscovered(ci,i);
+   if(disc)cards+=`<div class="book-card"><span class="bc-em">${em}</span><span class="bc-nm">${c.names[lang][i]}</span><span class="bc-fact">${FACTS[c.key][lang][i]}</span></div>`;
+   else cards+=`<div class="book-card locked"><span class="bc-em">🍽️</span><span class="bc-nm">???</span><span class="bc-fact">${T[lang].locked}</span></div>`;
+  });
+  sec.innerHTML=`<div class="book-cuisine-title">${locked?'🔒':c.flag} ${c.name[lang]}</div><div class="book-grid">${cards}</div>`;
+  body.appendChild(sec);
+ });
+ haptic('light');}
+function closeBook(){document.getElementById('bookScreen').classList.remove('show');}
+
+document.addEventListener('keydown',e=>{
+ if(document.getElementById('cuisineDrawer').classList.contains('show')){if(e.key==='Escape')closeDrawer();return;}
+ if(document.getElementById('bookScreen').classList.contains('show')){if(e.key==='Escape')closeBook();return;}
+ if(document.getElementById('achScreen').classList.contains('show')){if(e.key==='Escape')closeAch();return;}
+ if(document.getElementById('chefScreen').classList.contains('show')){if(e.key==='Escape')closeChef();return;}
+ const k={ArrowLeft:'left',ArrowRight:'right',ArrowUp:'up',ArrowDown:'down'}[e.key];if(k){e.preventDefault();move(k);}if(e.key==='z'||e.key==='Z')undo();if(e.key==='Escape'&&boostMode)toggleBoost();});
+document.getElementById('bookClose').onclick=closeBook;
+document.getElementById('chefBtn').onclick=openChef;
+document.getElementById('chefClose').onclick=closeChef;
+document.getElementById('openBookBtn').onclick=()=>{closeChef();openBook();};
+document.getElementById('openAchBtn').onclick=()=>{closeChef();openAch();};
+document.getElementById('achClose').onclick=closeAch;
+
+let sx,sy;const wrap=document.querySelector('.board-wrap');
+wrap.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY;},{passive:true});
+wrap.addEventListener('touchend',e=>{if(sx==null)return;const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;if(Math.max(Math.abs(dx),Math.abs(dy))<24)return;if(Math.abs(dx)>Math.abs(dy))move(dx>0?'right':'left');else move(dy>0?'down':'up');sx=sy=null;},{passive:true});
+document.getElementById('cuisineTab').onclick=(e)=>{e.stopPropagation();document.getElementById('setList').classList.remove('open');openDrawer();};
+document.getElementById('drawerClose').onclick=closeDrawer;
+document.getElementById('drawerBackdrop').onclick=closeDrawer;
+document.getElementById('setBtn').onclick=(e)=>{e.stopPropagation();closeDrawer();document.getElementById('setList').classList.toggle('open');};
+document.addEventListener('click',e=>{if(!e.target.closest('.menu-wrap')){document.getElementById('setList').classList.remove('open');}});
+
+// бустер — обычная кнопка в шапке
+document.getElementById('boostBtn').onclick=toggleBoost;
+document.getElementById('clearBtn').onclick=doClear;
+document.getElementById('undoBtn').onclick=()=>{
+ if(undoLeft<=0&&prevState){toast(T[lang].noUndo,1800);haptic('error');return;}
+ undo();};
+
+// настройки
+function updSound(){document.body.classList.toggle('sound-off',!soundOn);const s=document.getElementById('setSoundState');if(s)s.textContent=soundOn?(lang==='ru'?'вкл':'on'):(lang==='ru'?'выкл':'off');}
+function updVibro(){document.body.classList.toggle('vibro-off',!vibroOn);const s=document.getElementById('setVibroState');if(s)s.textContent=vibroOn?(lang==='ru'?'вкл':'on'):(lang==='ru'?'выкл':'off');}
+document.getElementById('setSound').onclick=()=>{soundOn=!soundOn;save();updSound();if(soundOn){ac();punk(120,.3,.22);}};
+document.getElementById('setVibro').onclick=()=>{vibroOn=!vibroOn;save();updVibro();if(vibroOn)haptic('medium');};
+document.getElementById('setLang').onclick=()=>{lang=lang==='ru'?'en':'ru';save();applyLang();applyTheme();fullRender();buildMenu();updSettingsLabels();};
+document.getElementById('restartBtn').onclick=()=>{
+ const t=lang==='ru';
+ document.getElementById('crTitle').textContent=t?'Начать заново?':'Restart game?';
+ document.getElementById('crText').textContent=t?'Текущая партия на этой кухне будет сброшена. Прогресс других кухонь и шефа сохранится.':'The current game on this cuisine will reset. Other cuisines and chef progress stay.';
+ document.getElementById('crCancel').textContent=t?'Отмена':'Cancel';
+ document.getElementById('crYes').textContent=t?'Новая игра':'New game';
+ document.getElementById('confirmRestart').classList.add('show');haptic('light');};
+document.getElementById('crCancel').onclick=()=>{document.getElementById('confirmRestart').classList.remove('show');};
+document.getElementById('crYes').onclick=()=>{document.getElementById('confirmRestart').classList.remove('show');newGame(true);haptic('medium');};
+document.getElementById('setReset').onclick=()=>{document.getElementById('setList').classList.remove('open');
+ const t=lang==='ru';
+ document.getElementById('confirmTitle').textContent=t?'Сбросить весь прогресс?':'Reset all progress?';
+ document.getElementById('confirmText').textContent=t?'Будут удалены все кухни, уровни шефа, предметы, рекорды и статистика. Это действие нельзя отменить.':'All cuisines, chef levels, items, records and stats will be erased. This cannot be undone.';
+ document.getElementById('confirmCancel').textContent=t?'Отмена':'Cancel';
+ document.getElementById('confirmYes').textContent=t?'Да, сбросить':'Yes, reset';
+ document.getElementById('confirmReset').classList.add('show');haptic('medium');};
+document.getElementById('confirmCancel').onclick=()=>{document.getElementById('confirmReset').classList.remove('show');haptic('light');};
+document.getElementById('confirmYes').onclick=()=>{
+ const keepLang=lang;
+ Object.keys(localStorage).filter(k=>k.indexOf('c2_')===0).forEach(k=>localStorage.removeItem(k));
+ localStorage.setItem('c2_lang',keepLang);
+ haptic('success');location.reload();};
+function updSettingsLabels(){const t=lang;
+ document.getElementById('setSoundLbl').textContent=t==='ru'?'Звук':'Sound';
+ document.getElementById('setVibroLbl').textContent=t==='ru'?'Вибрация':'Vibration';
+ document.getElementById('setLangLbl').textContent=t==='ru'?'Язык':'Language';
+ document.getElementById('setLangState').textContent=t==='ru'?'RU':'EN';
+ const sr=document.getElementById('setResetLbl');if(sr)sr.textContent=t==='ru'?'Сбросить прогресс':'Reset progress';
+ updSound();updVibro();}
+window.addEventListener('resize',()=>fullRender());
+['touchstart','keydown','click'].forEach(ev=>document.addEventListener(ev,()=>{try{ac().resume();}catch(e){}},{once:true}));
+
+function maybeOnboard(){if(!onbDone){document.getElementById('onb').classList.add('show');}}
+function maybeBoosterIntro(){
+ if(localStorage.getItem('c2_seenBoosterIntro'))return;
+ if(!onbDone)return; // сначала основной онбординг
+ localStorage.setItem('c2_seenBoosterIntro','1');
+ const pop=document.getElementById('itemPop');if(!pop)return;
+ const fb=document.getElementById('ipFlag');if(fb)fb.style.display='none';
+ pop.style.setProperty('--accent',CUISINES[curCuisine].accent);
+ document.getElementById('ipEm').textContent='🎟️';
+ document.getElementById('ipName').textContent=lang==='ru'?'Твои бустеры':'Your boosters';
+ document.getElementById('ipDesc').innerHTML=lang==='ru'
+  ?'↶ отменить ход · ⬆️ прокачать блюдо · 🧹 убрать мелочь. По заряду в день, больше — за уровни шефа.'
+  :'↶ undo · ⬆️ upgrade a dish · 🧹 clear small dishes. One charge a day, more from chef levels.';
+ pop.classList.add('show');clearTimeout(itemPopTimer);itemPopTimer=setTimeout(()=>pop.classList.remove('show'),5000);}
+document.getElementById('onbBtn').onclick=()=>{document.getElementById('onb').classList.remove('show');onbDone=true;localStorage.setItem('c2_onb','1');haptic('light');setTimeout(maybeBoosterIntro,600);};
+
+// ---------- Telegram Mini App ----------
+let tgApp=null;
+(function initTelegram(){
+ try{
+  const tg=window.Telegram&&window.Telegram.WebApp;
+  if(!tg)return;
+  tgApp=tg;
+  tg.ready();
+  tg.expand(); // на весь экран
+  try{tg.disableVerticalSwipes&&tg.disableVerticalSwipes();}catch(e){} // чтобы свайпы не закрывали приложение
+  // подгоняем фон под нашу тему, а не под тему телеги
+  try{tg.setHeaderColor&&tg.setHeaderColor('#15161a');tg.setBackgroundColor&&tg.setBackgroundColor('#15161a');}catch(e){}
+  // учёт «чёлки»/safe-area сверху
+  const applyInset=()=>{const top=(tg.safeAreaInset&&tg.safeAreaInset.top)||(tg.contentSafeAreaInset&&tg.contentSafeAreaInset.top)||0;
+   document.body.style.paddingTop=top?top+'px':'';};
+  applyInset();
+  tg.onEvent&&tg.onEvent('safeAreaChanged',applyInset);
+  tg.onEvent&&tg.onEvent('viewportChanged',applyInset);
+ }catch(e){}
+})();
+
+load();buildBoard();buildMenu();updSound();updVibro();updSettingsLabels();newGame();updRank();updBoostUI();updBookBadge();checkAchievements({});
+// сплэш + онбординг
+window.addEventListener('load',()=>{setTimeout(()=>{document.getElementById('splash').classList.add('hide');setTimeout(maybeOnboard,500);},1300);});
+// если load уже прошёл
+if(document.readyState==='complete'){setTimeout(()=>{document.getElementById('splash').classList.add('hide');setTimeout(maybeOnboard,500);},1300);}
+</script>
+</body>
+</html>
